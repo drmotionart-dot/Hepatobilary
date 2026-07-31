@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Script from "next/script";
+import OfflineQueueBanner from "@/components/OfflineQueueBanner";
 // Self-hosted IBM Plex family (fontsource) so builds don't depend on Google
 // Fonts at build time. Same families as before: sans + arabic + mono.
 import "@fontsource/ibm-plex-sans/400.css";
@@ -26,6 +27,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <Script id="theme-init" strategy="beforeInteractive">
           {`try{var t=localStorage.getItem("hpb-theme");if(t==="dark"||(!t&&window.matchMedia("(prefers-color-scheme: dark)").matches)){document.documentElement.classList.add("dark")}}catch(e){}`}
         </Script>
+        <OfflineQueueBanner />
         {children}
       </body>
     </html>
