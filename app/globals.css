@@ -10,9 +10,27 @@
   }
 }
 
+:root {
+  --font-plex-sans: "IBM Plex Sans", system-ui, sans-serif;
+  --font-plex-sans-arabic: "IBM Plex Sans Arabic", "IBM Plex Sans", sans-serif;
+  --font-plex-mono: "IBM Plex Mono", ui-monospace, monospace;
+}
+
 body {
   background-color: #F6F7F5;
   color: #1C2321;
+}
+
+/* Dark mode base (Phase 3 sweeps the rest of the app). */
+html.dark body {
+  background-color: #101513;
+  color: #E8EDEA;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  body {
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
 }
 
 /* Arabic text (patient names, Arabic orders) renders RTL inline within the

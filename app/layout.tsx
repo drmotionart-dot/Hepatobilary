@@ -1,27 +1,18 @@
 import type { Metadata } from "next";
-import { IBM_Plex_Sans, IBM_Plex_Sans_Arabic, IBM_Plex_Mono } from "next/font/google";
+import Script from "next/script";
+// Self-hosted IBM Plex family (fontsource) so builds don't depend on Google
+// Fonts at build time. Same families as before: sans + arabic + mono.
+import "@fontsource/ibm-plex-sans/400.css";
+import "@fontsource/ibm-plex-sans/500.css";
+import "@fontsource/ibm-plex-sans/600.css";
+import "@fontsource/ibm-plex-sans/700.css";
+import "@fontsource/ibm-plex-sans-arabic/400.css";
+import "@fontsource/ibm-plex-sans-arabic/500.css";
+import "@fontsource/ibm-plex-sans-arabic/600.css";
+import "@fontsource/ibm-plex-sans-arabic/700.css";
+import "@fontsource/ibm-plex-mono/400.css";
+import "@fontsource/ibm-plex-mono/500.css";
 import "./globals.css";
-
-// Font pairing from section 8 of the build spec: one family across both
-// scripts so English clinical shorthand and Arabic names/orders feel
-// like one coherent design, not two mismatched fonts stitched together.
-const plexSans = IBM_Plex_Sans({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  variable: "--font-plex-sans"
-});
-
-const plexSansArabic = IBM_Plex_Sans_Arabic({
-  subsets: ["arabic"],
-  weight: ["400", "500", "600", "700"],
-  variable: "--font-plex-sans-arabic"
-});
-
-const plexMono = IBM_Plex_Mono({
-  subsets: ["latin"],
-  weight: ["400", "500"],
-  variable: "--font-plex-mono"
-});
 
 export const metadata: Metadata = {
   title: "HPB Department",
@@ -31,7 +22,10 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className={`${plexSans.variable} ${plexSansArabic.variable} ${plexMono.variable} font-sans`}>
+      <body className="font-sans">
+        <Script id="theme-init" strategy="beforeInteractive">
+          {`try{var t=localStorage.getItem("hpb-theme");if(t==="dark"||(!t&&window.matchMedia("(prefers-color-scheme: dark)").matches)){document.documentElement.classList.add("dark")}}catch(e){}`}
+        </Script>
         {children}
       </body>
     </html>

@@ -1,0 +1,209 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { apiFetch, clearToken } from "@/lib/client-api";
+
+type UserInfo = { name?: string; email?: string; role: string };
+type PatientHit = { _id: string; medicalNumber: string; fullName: string; age: number; sex: string };
+type EncounterHit = { _id: string; status: string; type: string };
+
+const ROLE_LABELS: Record<string, string> = {
+  admin: "Admin",
+  resident: "Resident",
+  intern: "Intern",
+};
+
+export default function TopBar({ user }: { user: UserInfo | null }) {
+  const router = useRouter();
+  const boxRef = useRef<HTMLDivElement>(null);
+
+  const [q, setQ] = useState("");
+  const [results, setResults] = useState<PatientHit[]>([]);
+  const [searching, setSearching] = useState(false);
+  const [open, setOpen] = useState(false);
+  const [navigating, setNavigating] = useState(false);
+  const [dark, setDark] = useState(false);
+
+  useEffect(() => {
+    setDark(typeof document !== "undefined" && document.documentElement.classList.contains("dark"));
+  }, []);
+
+  useEffect(() => {
+    function onDoc(e: MouseEvent) {
+      if (boxRef.current && !boxRef.current.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener("mousedown", onDoc);
+    return () => document.removeEventListener("mousedown", onDoc);
+  }, []);
+
+  useEffect(() => {
+    const t = setTimeout(async () => {
+      const term = q.trim();
+      if (term.length < 2) {
+        setResults([]);
+        setSearching(false);
+        return;
+      }
+      setSearching(true);
+      try {
+        const res = await apiFetch(`/api/patients?q=${encodeURIComponent(term)}&limit=8`);
+        if (res.ok) setResults(await res.json());
+      } catch {
+        setResults([]);
+      } finally {
+        setSearching(false);
+      }
+    }, 250);
+    return () => clearTimeout(t);
+  }, [q]);
+
+  function toggleTheme() {
+    const next = !document.documentElement.classList.contains("dark");
+    document.documentElement.classList.toggle("dark", next);
+    localStorage.setItem("hpb-theme", next ? "dark" : "light");
+    setDark(next);
+  }
+
+  async function openPatient(p: PatientHit) {
+    if (navigating) return;
+    setNavigating(true);
+    setOpen(false);
+    setQ("");
+    try {
+      const res = await apiFetch(`/api/encounters?patientId=${p._id}`);
+      const list: EncounterHit[] = res.ok ? await res.json() : [];
+      const target = list.find((e) => e.status === "active") || list[0];
+      if (target) router.push(`/ward/${target._id}`);
+      else router.push("/clinic");
+    } finally {
+      setNavigating(false);
+    }
+  }
+
+  function handleSignOut() {
+    clearToken();
+    window.location.href = "/login";
+  }
+
+  return (
+    <header className="sticky top-0 z-20 border-b border-black/10 bg-surface dark:border-dark-border dark:bg-dark-surface">
+      <div className="mx-auto flex max-w-5xl items-center gap-2 px-4 py-2.5">
+        <Link
+          href="/dashboard"
+          className="text-base font-semibold text-primary md:hidden dark:text-dark-primary"
+        >
+          HPB
+        </Link>
+
+        <div ref={boxRef} className="relative ml-auto flex-1 max-w-xs sm:max-w-sm">
+          <div className="relative">
+            <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink/40">
+              <IconSearch />
+            </span>
+            <input
+              value={q}
+              onChange={(e) => {
+                setQ(e.target.value);
+                setOpen(true);
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Escape") setOpen(false);
+                if (e.key === "Enter" && results.length > 0) openPatient(results[0]);
+              }}
+              placeholder="Search patients…"
+              className="w-full rounded-lg border border-black/10 bg-bg px-3 py-1.5 pl-8 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-dark-border dark:bg-dark-bg dark:text-dark-ink dark:placeholder:text-dark-ink/40"
+            />
+          </div>
+
+          {open && (q.trim().length >= 2 || searching) && (
+            <div className="absolute left-0 right-0 top-full z-30 mt-1 max-h-72 overflow-y-auto rounded-lg border border-black/10 bg-surface shadow-lg dark:border-dark-border dark:bg-dark-surface">
+              {searching && <p className="px-3 py-2 text-xs text-ink/50">Searching…</p>}
+              {!searching && results.length === 0 && (
+                <p className="px-3 py-2 text-xs text-ink/50">No patients found.</p>
+              )}
+              <ul>
+                {results.map((p) => (
+                  <li key={p._id}>
+                    <button
+                      type="button"
+                      onClick={() => openPatient(p)}
+                      className="flex w-full items-center justify-between px-3 py-2 text-left text-sm hover:bg-primary/10"
+                    >
+                      <span className="font-medium">{p.fullName}</span>
+                      <span className="text-xs text-ink/50">
+                        {p.medicalNumber} · {p.age}y · {p.sex}
+                      </span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+
+        <button
+          type="button"
+          onClick={toggleTheme}
+          title={dark ? "Switch to light mode" : "Switch to dark mode"}
+          className="inline-flex items-center justify-center rounded-lg border border-black/10 p-2 text-ink/70 transition-colors hover:bg-primary/10 hover:text-primary dark:border-dark-border dark:text-dark-ink/70"
+        >
+          {dark ? <IconSun /> : <IconMoon />}
+        </button>
+
+        {user && (
+          <div className="hidden sm:flex flex-col items-end leading-tight">
+            <span className="text-sm font-medium">{user.name || "User"}</span>
+            <span className="text-xs text-ink/50">{ROLE_LABELS[user.role] || user.role}</span>
+          </div>
+        )}
+
+        <button
+          type="button"
+          onClick={handleSignOut}
+          className="inline-flex items-center gap-1.5 rounded-lg border border-black/10 px-3 py-1.5 text-sm font-medium text-ink/80 transition-colors hover:bg-danger/10 hover:text-danger dark:border-dark-border dark:text-dark-ink/80"
+        >
+          <IconLogout />
+          <span className="hidden sm:inline">Sign out</span>
+        </button>
+      </div>
+    </header>
+  );
+}
+
+function IconSearch() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="11" cy="11" r="8" />
+      <path d="m21 21-4.3-4.3" />
+    </svg>
+  );
+}
+
+function IconMoon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />
+    </svg>
+  );
+}
+
+function IconSun() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="4" />
+      <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" />
+    </svg>
+  );
+}
+
+function IconLogout() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+      <polyline points="16 17 21 12 16 7" />
+      <line x1="21" x2="9" y1="12" y2="12" />
+    </svg>
+  );
+}
