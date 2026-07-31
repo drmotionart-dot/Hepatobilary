@@ -16,6 +16,7 @@ export default function ReviewQueue({ imports }: { imports: any[] }) {
   const [fullName, setFullName] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [removingId, setRemovingId] = useState<string | null>(null);
 
   async function resolve(importId: string) {
     setError("");
@@ -38,6 +39,20 @@ export default function ReviewQueue({ imports }: { imports: any[] }) {
     router.refresh();
   }
 
+  async function remove(importId: string) {
+    if (!window.confirm("Delete this import? This removes the extracted lab data and clears it from the review queue.")) return;
+    setError("");
+    setRemovingId(importId);
+    const res = await apiFetch(`/api/lab-import/${importId}`, { method: "DELETE" });
+    setRemovingId(null);
+    if (!res.ok) {
+      const d = await res.json();
+      setError(d.error || "Could not remove import");
+      return;
+    }
+    router.refresh();
+  }
+
   if (imports.length === 0) {
     return <Card><p className="text-sm text-ink/50">No imports awaiting review.</p></Card>;
   }
@@ -53,9 +68,19 @@ export default function ReviewQueue({ imports }: { imports: any[] }) {
                 Patient code <span className="font-semibold">{i.patientCode}</span> · {formatDateTime(i.importedAt)}
               </p>
             </div>
-            <Button size="sm" variant={expanded === i._id ? "ghost" : "secondary"} onClick={() => setExpanded(expanded === i._id ? null : i._id)}>
-              {expanded === i._id ? "Close" : "Resolve"}
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                size="sm"
+                variant="danger"
+                disabled={removingId === i._id}
+                onClick={() => remove(i._id)}
+              >
+                {removingId === i._id ? "Removing…" : "Remove"}
+              </Button>
+              <Button size="sm" variant={expanded === i._id ? "ghost" : "secondary"} onClick={() => setExpanded(expanded === i._id ? null : i._id)}>
+                {expanded === i._id ? "Close" : "Resolve"}
+              </Button>
+            </div>
           </div>
 
           {i.extractedTests?.length > 0 && (
