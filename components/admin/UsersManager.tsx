@@ -31,6 +31,25 @@ export default function UsersManager({ users, pending }: { users: any[]; pending
     router.refresh();
   }
 
+  async function downloadTemplate() {
+    setError("");
+    const res = await apiFetch("/api/admin/users/template");
+    if (!res.ok) {
+      const d = await res.json().catch(() => null);
+      setError(d?.error || "Failed to download template");
+      return;
+    }
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "rotation-template.xlsx";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }
+
   async function importRotation(e: React.FormEvent) {
     e.preventDefault();
     if (!file) return;
@@ -71,6 +90,9 @@ export default function UsersManager({ users, pending }: { users: any[]; pending
               Columns: name, email, number. Creates intern accounts, 50-day expiry, forced password change.
             </p>
           </div>
+          <Button type="button" variant="secondary" size="sm" onClick={downloadTemplate} disabled={loading}>
+            Download template
+          </Button>
           <Button type="submit" disabled={loading || !file} size="sm">
             {loading ? "Importing…" : "Import"}
           </Button>
