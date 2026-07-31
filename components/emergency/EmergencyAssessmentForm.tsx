@@ -23,6 +23,7 @@ export default function EmergencyAssessmentForm() {
   const [age, setAge] = useState("");
   const [sex, setSex] = useState("male");
   const [caseType, setCaseType] = useState("hernia");
+  const [customCaseTypeLabel, setCustomCaseTypeLabel] = useState("");
   const [ward, setWard] = useState("male");
 
   const [presentingLine, setPresentingLine] = useState("");
@@ -50,7 +51,14 @@ export default function EmergencyAssessmentForm() {
     const eRes = await apiFetch("/api/encounters", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ patientId, type: "emergency", caseType, status: "active", ward }),
+      body: JSON.stringify({
+        patientId,
+        type: "emergency",
+        caseType,
+        status: "active",
+        ward,
+        ...(caseType === "custom" ? { customCaseTypeLabel: customCaseTypeLabel.trim() } : {}),
+      }),
     });
     setLoading(false);
 
@@ -107,7 +115,7 @@ export default function EmergencyAssessmentForm() {
         presentingLine,
         complaint: { main, duration, associated: [], pertinentNegatives: [], bowelHabit: "normal", dysuria: false, viralHepatitis: { hcv: false, hbv: false, hiv: false } },
         generalExam: { consciousness, bp, hr: Number(hr) || 0, ecgRequired: false, ecgDone: false, echoRequired: false, echoDone: false },
-        localExam: { templateUsed: caseType, fields: {} },
+        localExam: { templateUsed: caseType === "custom" ? "generic" : caseType, fields: {} },
         riskFactors: {},
         investigationsOrdered: [],
         recommendation,
@@ -250,6 +258,13 @@ export default function EmergencyAssessmentForm() {
             </Select>
           </div>
         </div>
+
+        {caseType === "custom" && (
+          <div>
+            <Label>Name for this case *</Label>
+            <Input value={customCaseTypeLabel} onChange={(e) => setCustomCaseTypeLabel(e.target.value)} placeholder="e.g. Appendicitis, Trauma, Liver abscess…" required />
+          </div>
+        )}
 
         {error && <p className="text-xs text-danger">{error}</p>}
 

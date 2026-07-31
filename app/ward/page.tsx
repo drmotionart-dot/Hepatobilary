@@ -7,12 +7,14 @@ import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
 import { requireSession, apiFetchServer } from "@/lib/api";
 import { formatDate, dayName } from "@/lib/format";
+import { caseTypeDisplay } from "@/lib/constants";
 import type { Patient } from "@/lib/models/types";
 
 type WardEncounter = {
   _id: string;
   patientId: string;
   caseType: string;
+  customCaseTypeLabel?: string | null;
   status: string;
   openedAt: string;
   patient: Patient | null;
@@ -78,7 +80,7 @@ export default async function WardPage({
                         </p>
                       </div>
                       <div className="flex items-center gap-2">
-                        <Badge tone="info">{e.caseType}</Badge>
+                        <Badge tone="info">{caseTypeDisplay(e.caseType, e.customCaseTypeLabel)}</Badge>
                         <span className="text-xs text-ink/40">→</span>
                       </div>
                     </div>

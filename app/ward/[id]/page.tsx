@@ -11,6 +11,7 @@ import AddReferralForm from "@/components/encounter/AddReferralForm";
 import AddTreatmentForm from "@/components/encounter/AddTreatmentForm";
 import { requireSession, apiFetchServer } from "@/lib/api";
 import { formatDate, formatDateTime } from "@/lib/format";
+import { caseTypeDisplay } from "@/lib/constants";
 import type { Encounter, Patient, ClinicalNote, LabPanel, ImagingRequest, ReferralConsult, TreatmentLog, OperationForm, DischargeForm } from "@/lib/models/types";
 
 type EncounterDetail = {
@@ -41,7 +42,7 @@ export default async function EncounterPage({ params }: { params: { id: string }
       <div className="max-w-4xl mx-auto p-4 md:p-8">
         <PageHeader
           title={patient?.fullName || "Patient"}
-          subtitle={`${patient?.medicalNumber} · ${patient?.age} yrs · ${encounter.type} · ${encounter.caseType}`}
+          subtitle={`${patient?.medicalNumber} · ${patient?.age} yrs · ${encounter.type} · ${caseTypeDisplay(encounter.caseType, encounter.customCaseTypeLabel)}`}
           action={<Badge tone={statusTone as any}>{encounter.status}</Badge>}
         />
 

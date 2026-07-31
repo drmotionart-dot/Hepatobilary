@@ -7,6 +7,7 @@ import Badge from "@/components/ui/Badge";
 import NewCaseForm from "@/components/clinic/NewCaseForm";
 import { requireSession, apiFetchServer } from "@/lib/api";
 import { formatDate } from "@/lib/format";
+import { caseTypeDisplay } from "@/lib/constants";
 import type { Encounter, Patient } from "@/lib/models/types";
 
 type ClinicEncounter = Encounter & { patient: Patient | null };
@@ -39,7 +40,7 @@ export default async function ClinicPage() {
                         <p className="text-xs text-ink/50">{p?.medicalNumber} · seen {formatDate(e.openedAt)}</p>
                       </div>
                       <div className="flex items-center gap-2">
-                        <Badge>{e.caseType}</Badge>
+                        <Badge>{caseTypeDisplay(e.caseType, e.customCaseTypeLabel)}</Badge>
                         <Link href={`/clinic/${e._id}`} className="text-xs text-primary font-medium">
                           Open →
                         </Link>

@@ -77,7 +77,8 @@ The central spine — one per episode (an ER visit, a ward admission, a clinic v
   _id,
   patientId,
   type: "emergency" | "ward" | "clinic",
-  caseType: "hernia" | "biliary" | "hepatic" | "generic",   // drives templates
+  caseType: "hernia" | "biliary" | "hepatic" | "custom",   // drives templates; "custom" pairs with customCaseTypeLabel below
+  customCaseTypeLabel: string | null,   // free-text case name when caseType === "custom", e.g. "Appendicitis" — required for custom cases
   status: "active" | "discharged" | "follow-up-pending" | "closed" | "referred-out",
   ward: "male" | "female" | null,     // set once admitted
   openedAt: date,
@@ -293,7 +294,7 @@ Seeded from the sample PDF (e.g. "SGPT (ALT)" → "ALT" / LiverFTs, "Blood Urea"
 3. Each extracted test name is looked up in `LabTestNameMapping`; recognized ones auto-fill the matching patient's `LabPanel` under the Request Date column. Unrecognized names are queued for a one-time admin mapping, then apply automatically on future imports (including retroactively re-checking anything left in "needs review").
 4. If a file's `patientCode` doesn't match any known `Patient`, that single file lands in a "needs review" queue — it doesn't block or fail the rest of the batch.
 5. After a batch finishes, show a short results summary: X matched and filled automatically, Y needs manual review (with reasons — unmatched code, unrecognized test names, etc.).
-6. **Note:** confirm whether the lab PDF's "Patient Code" is the same value as the department's own medical number field, or a separate code from the hospital's central lab system — if separate, it gets stored as a linked `labPatientCode` on the `Patient` record the first time it's matched, so future imports for that patient auto-match.
+6. **Confirmed:** the lab PDF's "Patient Code" is the **same** as the department's medical number field (clinic and ward both use it) — matching is done directly against `Patient.medicalNumber`, so there is **no separate `labPatientCode` field** on the `Patient` record and no extra input in the UI. No change to note 2 above: matching is still by the numeric code, never by the Arabic name.
 7. Source PDFs are not retained long-term after import — only the extracted structured results persist in `LabPanel`, keeping storage lean (per your note about not wanting the PDFs themselves to pile up).
 
 ### 3.13 Shift Rostering

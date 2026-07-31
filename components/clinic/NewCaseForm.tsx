@@ -23,8 +23,8 @@ export default function NewCaseForm() {
   const [fullName, setFullName] = useState("");
   const [age, setAge] = useState("");
   const [sex, setSex] = useState("male");
-  const [labPatientCode, setLabPatientCode] = useState("");
   const [caseType, setCaseType] = useState("hernia");
+  const [customCaseTypeLabel, setCustomCaseTypeLabel] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -49,7 +49,7 @@ export default function NewCaseForm() {
       const pRes = await apiFetch("/api/patients", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ medicalNumber, fullName, age: Number(age), sex, labPatientCode: labPatientCode || undefined }),
+        body: JSON.stringify({ medicalNumber, fullName, age: Number(age), sex }),
       });
       if (!pRes.ok) {
         const d = await pRes.json();
@@ -64,7 +64,13 @@ export default function NewCaseForm() {
     const eRes = await apiFetch("/api/encounters", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ patientId, type: "clinic", caseType, status: "active" }),
+      body: JSON.stringify({
+        patientId,
+        type: "clinic",
+        caseType,
+        status: "active",
+        ...(caseType === "custom" ? { customCaseTypeLabel: customCaseTypeLabel.trim() } : {}),
+      }),
     });
     setLoading(false);
 
@@ -122,13 +128,9 @@ export default function NewCaseForm() {
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-3">
-            <div>
+            <div className="col-span-2">
               <Label>Medical number *</Label>
               <Input value={medicalNumber} onChange={(e) => setMedicalNumber(e.target.value)} required />
-            </div>
-            <div>
-              <Label>Lab patient code (if known)</Label>
-              <Input value={labPatientCode} onChange={(e) => setLabPatientCode(e.target.value)} />
             </div>
             <div className="col-span-2">
               <Label>Full name *</Label>
@@ -154,6 +156,13 @@ export default function NewCaseForm() {
             {CASE_TYPES.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
           </Select>
         </div>
+
+        {caseType === "custom" && (
+          <div>
+            <Label>Name for this case *</Label>
+            <Input value={customCaseTypeLabel} onChange={(e) => setCustomCaseTypeLabel(e.target.value)} placeholder="e.g. Appendicitis, Trauma, Liver abscess…" required />
+          </div>
+        )}
 
         {error && <p className="text-xs text-danger">{error}</p>}
 

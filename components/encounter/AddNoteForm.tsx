@@ -54,7 +54,7 @@ export default function AddNoteForm({ encounterId, caseType }: { encounterId: st
         presentingLine,
         complaint: { main, duration, associated: [], pertinentNegatives: [], bowelHabit: "normal", dysuria: false, viralHepatitis: { hcv: false, hbv: false, hiv: false } },
         generalExam: { consciousness: "A", bp, hr: Number(hr) || 0, ecgRequired: false, ecgDone: false, echoRequired: false, echoDone: false },
-        localExam: { templateUsed: caseType, fields: localFields },
+        localExam: { templateUsed: template ? template.name.toLowerCase() : "generic", fields: localFields },
         riskFactors: {},
         investigationsOrdered: [],
         recommendation,
