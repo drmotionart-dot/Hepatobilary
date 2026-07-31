@@ -1,0 +1,24 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+body {
+  background-color: #F6F7F5;
+  color: #1C2321;
+}
+
+/* Arabic text (patient names, Arabic orders) renders RTL inline within the
+   otherwise LTR layout — apply this class wherever Arabic content is shown. */
+.rtl-inline {
+  direction: rtl;
+  unicode-bidi: isolate;
+  text-align: right;
+}
