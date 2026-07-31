@@ -6,19 +6,21 @@ import Badge from "@/components/ui/Badge";
 import StatusActions from "@/components/encounter/StatusActions";
 import AddNoteForm from "@/components/encounter/AddNoteForm";
 import AddLabEntryForm from "@/components/encounter/AddLabEntryForm";
+import LabPanel from "@/components/encounter/LabPanel";
 import AddImagingForm from "@/components/encounter/AddImagingForm";
 import AddReferralForm from "@/components/encounter/AddReferralForm";
+import ReferralReview from "@/components/encounter/ReferralReview";
 import AddTreatmentForm from "@/components/encounter/AddTreatmentForm";
 import { requireSession, apiFetchServer } from "@/lib/api";
 import { formatDate, formatDateTime } from "@/lib/format";
 import { caseTypeDisplay } from "@/lib/constants";
-import type { Encounter, Patient, ClinicalNote, LabPanel, ImagingRequest, ReferralConsult, TreatmentLog, OperationForm, DischargeForm } from "@/lib/models/types";
+import type { Encounter, Patient, ClinicalNote, LabPanel as LabPanelModel, ImagingRequest, ReferralConsult, TreatmentLog, OperationForm, DischargeForm } from "@/lib/models/types";
 
 type EncounterDetail = {
   encounter: Encounter;
   patient: Patient | null;
   notes: (ClinicalNote & { authorName: string })[];
-  labPanel: LabPanel | null;
+  labPanel: LabPanelModel | null;
   imaging: ImagingRequest[];
   referrals: ReferralConsult[];
   treatmentLog: TreatmentLog | null;
@@ -87,32 +89,7 @@ export default async function EncounterPage({ params }: { params: { id: string }
 
           {/* Lab panel */}
           <Card title="Lab results">
-            {!labPanel || labPanel.results.length === 0 ? (
-              <p className="text-sm text-ink/50 mb-3">No lab results yet.</p>
-            ) : (
-              <div className="overflow-x-auto mb-4">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="text-left text-xs text-ink/50 border-b border-black/10">
-                      <th className="py-2 pr-3">Date</th>
-                      <th className="py-2 pr-3">Category</th>
-                      <th className="py-2 pr-3">Test</th>
-                      <th className="py-2">Value</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {labPanel.results.map((r, i) => (
-                      <tr key={i} className="border-b border-black/5">
-                        <td className="py-2 pr-3 whitespace-nowrap">{formatDate(r.date)}</td>
-                        <td className="py-2 pr-3"><Badge>{r.category}</Badge></td>
-                        <td className="py-2 pr-3 font-medium">{r.test}</td>
-                        <td className="py-2">{r.value}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
+            <LabPanel results={labPanel?.results || []} />
             <AddLabEntryForm encounterId={encounter._id!.toString()} />
           </Card>
 
@@ -149,12 +126,15 @@ export default async function EncounterPage({ params }: { params: { id: string }
             ) : (
               <ul className="flex flex-col divide-y divide-black/5 mb-4">
                 {referrals.map((r) => (
-                  <li key={r._id!.toString()} className="py-2.5 flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium">{r.toSpecialty}</p>
-                      <p className="text-xs text-ink/50 mt-0.5">{r.reason} · {formatDate(r.referredAt)}</p>
+                  <li key={r._id!.toString()} className="py-2.5">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium">{r.toSpecialty}</p>
+                        <p className="text-xs text-ink/50 mt-0.5">{r.reason} · {formatDate(r.referredAt)}</p>
+                      </div>
+                      <Badge tone={r.status === "reviewed" ? "success" : "warning"}>{r.status}</Badge>
                     </div>
-                    <Badge tone={r.status === "reviewed" ? "success" : "warning"}>{r.status}</Badge>
+                    <ReferralReview referral={r} />
                   </li>
                 ))}
               </ul>
