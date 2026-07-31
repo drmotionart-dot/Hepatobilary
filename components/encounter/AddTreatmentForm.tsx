@@ -6,6 +6,7 @@ import Button from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
 import { Textarea } from "@/components/ui/Textarea";
+import { apiFetch } from "@/lib/client-api";
 
 export default function AddTreatmentForm({ encounterId }: { encounterId: string }) {
   const router = useRouter();
@@ -21,7 +22,7 @@ export default function AddTreatmentForm({ encounterId }: { encounterId: string 
     setError("");
     setLoading(true);
 
-    const res = await fetch("/api/treatment-logs", {
+    const res = await apiFetch("/api/treatment-logs", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ encounterId, treatment, otherRecommendations, date: date || undefined }),

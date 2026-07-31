@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
 import { Textarea } from "@/components/ui/Textarea";
 import Badge from "@/components/ui/Badge";
+import { apiFetch } from "@/lib/client-api";
 
 export default function TemplateManager({ templates }: { templates: any[] }) {
   const router = useRouter();
@@ -31,7 +32,7 @@ export default function TemplateManager({ templates }: { templates: any[] }) {
       type: "boolean" as const,
     }));
 
-    const res = await fetch("/api/case-type-templates", {
+    const res = await apiFetch("/api/case-type-templates", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -114,7 +115,7 @@ export default function TemplateManager({ templates }: { templates: any[] }) {
                     size="sm"
                     variant="secondary"
                     onClick={async () => {
-                      await fetch(`/api/case-type-templates/${t._id}`, {
+                      await apiFetch(`/api/case-type-templates/${t._id}`, {
                         method: "PATCH",
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({ active: !t.active }),

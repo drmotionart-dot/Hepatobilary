@@ -1,6 +1,5 @@
 import Link from "next/link";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { requireSession } from "@/lib/api";
 
 const NAV = [
   { href: "/dashboard", label: "Dashboard" },
@@ -11,8 +10,8 @@ const NAV = [
 ];
 
 export default async function AppShell({ children }: { children: React.ReactNode }) {
-  const session = await getServerSession(authOptions);
-  const role = (session?.user as any)?.role as string | undefined;
+  const session = await requireSession();
+  const role = session?.role;
   const isAdmin = role === "admin";
   const isResidentOrAbove = role === "admin" || role === "resident";
 

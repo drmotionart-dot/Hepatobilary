@@ -7,6 +7,7 @@ import Card from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
 import { formatDateTime } from "@/lib/format";
+import { apiFetch } from "@/lib/client-api";
 
 export default function ReviewQueue({ imports }: { imports: any[] }) {
   const router = useRouter();
@@ -19,7 +20,7 @@ export default function ReviewQueue({ imports }: { imports: any[] }) {
   async function resolve(importId: string) {
     setError("");
     setLoading(true);
-    const res = await fetch("/api/lab-import/review", {
+    const res = await apiFetch("/api/lab-import/review", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ importId, medicalNumber, fullName }),

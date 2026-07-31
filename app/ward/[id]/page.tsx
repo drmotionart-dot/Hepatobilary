@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import AppShell from "@/components/AppShell";
 import PageHeader from "@/components/ui/PageHeader";
 import Card from "@/components/ui/Card";
@@ -9,40 +9,30 @@ import AddLabEntryForm from "@/components/encounter/AddLabEntryForm";
 import AddImagingForm from "@/components/encounter/AddImagingForm";
 import AddReferralForm from "@/components/encounter/AddReferralForm";
 import AddTreatmentForm from "@/components/encounter/AddTreatmentForm";
-import { ObjectId } from "mongodb";
-import { getDb } from "@/lib/mongodb";
-import { requireSession } from "@/lib/api";
+import { requireSession, apiFetchServer } from "@/lib/api";
 import { formatDate, formatDateTime } from "@/lib/format";
 import type { Encounter, Patient, ClinicalNote, LabPanel, ImagingRequest, ReferralConsult, TreatmentLog, OperationForm, DischargeForm } from "@/lib/models/types";
 
+type EncounterDetail = {
+  encounter: Encounter;
+  patient: Patient | null;
+  notes: (ClinicalNote & { authorName: string })[];
+  labPanel: LabPanel | null;
+  imaging: ImagingRequest[];
+  referrals: ReferralConsult[];
+  treatmentLog: TreatmentLog | null;
+  operation: OperationForm | null;
+  discharge: DischargeForm | null;
+};
+
 export default async function EncounterPage({ params }: { params: { id: string } }) {
   const session = await requireSession();
-  const db = await getDb();
+  if (!session) redirect("/login");
 
-  let encounter: Encounter | null = null;
-  try {
-    encounter = await db.collection<Encounter>("encounters").findOne({ _id: new ObjectId(params.id) });
-  } catch {
-    encounter = null;
-  }
-  if (!encounter) notFound();
+  const data = await apiFetchServer<EncounterDetail>(`/api/encounters/${params.id}`);
+  if (!data) notFound();
 
-  const [patient, notes, labPanel, imaging, referrals, treatmentLog, operation, discharge] = await Promise.all([
-    db.collection<Patient>("patients").findOne({ _id: encounter.patientId }),
-    db.collection<ClinicalNote>("clinicalNotes").find({ encounterId: encounter._id }).sort({ createdAt: 1 }).toArray(),
-    db.collection<LabPanel>("labPanels").findOne({ encounterId: encounter._id }),
-    db.collection<ImagingRequest>("imagingRequests").find({ encounterId: encounter._id }).sort({ requestedAt: -1 }).toArray(),
-    db.collection<ReferralConsult>("referralConsults").find({ encounterId: encounter._id }).sort({ referredAt: -1 }).toArray(),
-    db.collection<TreatmentLog>("treatmentLogs").findOne({ encounterId: encounter._id }),
-    db.collection<OperationForm>("operationForms").findOne({ encounterId: encounter._id }),
-    db.collection<DischargeForm>("dischargeForms").findOne({ encounterId: encounter._id }),
-  ]);
-
-  const authorIds = [...new Set(notes.map((n) => n.authoredBy.toString()))];
-  const authors = authorIds.length
-    ? await db.collection("users").find({ _id: { $in: authorIds.map((id) => new ObjectId(id)) } }).toArray()
-    : [];
-  const authorMap = new Map(authors.map((a: any) => [a._id.toString(), a.fullName]));
+  const { encounter, patient, notes, labPanel, imaging, referrals, treatmentLog, operation, discharge } = data;
 
   const statusTone = encounter.status === "active" ? "success" : encounter.status === "discharged" ? "info" : "warning";
 
@@ -69,7 +59,7 @@ export default async function EncounterPage({ params }: { params: { id: string }
                     <div className="flex items-center justify-between mb-1">
                       <span className="text-xs font-semibold text-primary uppercase">{n.context}</span>
                       <span className="text-xs text-ink/40">
-                        {authorMap.get(n.authoredBy.toString()) || "Unknown"} · {formatDateTime(n.createdAt)}
+                        {n.authorName || "Unknown"} · {formatDateTime(n.createdAt)}
                       </span>
                     </div>
                     {n.presentingLine && <p className="text-sm font-medium">{n.presentingLine}</p>}

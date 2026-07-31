@@ -6,6 +6,7 @@ import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 import Badge from "@/components/ui/Badge";
 import { formatDate } from "@/lib/format";
+import { apiFetch } from "@/lib/client-api";
 
 export default function UsersManager({ users, pending }: { users: any[]; pending: any[] }) {
   const router = useRouter();
@@ -17,7 +18,7 @@ export default function UsersManager({ users, pending }: { users: any[]; pending
 
   async function act(userId: string, action: string) {
     setError("");
-    const res = await fetch(`/api/admin/users/${userId}`, {
+    const res = await apiFetch(`/api/admin/users/${userId}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ action }),
@@ -40,7 +41,7 @@ export default function UsersManager({ users, pending }: { users: any[]; pending
 
     const formData = new FormData();
     formData.append("file", file);
-    const res = await fetch("/api/admin/users", { method: "POST", body: formData });
+    const res = await apiFetch("/api/admin/users", { method: "POST", body: formData });
     setLoading(false);
 
     if (!res.ok) {

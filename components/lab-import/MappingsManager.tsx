@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
 import { Select } from "@/components/ui/Select";
 import { LAB_CATEGORIES } from "@/lib/constants";
+import { apiFetch } from "@/lib/client-api";
 
 export default function MappingsManager({ mappings }: { mappings: any[] }) {
   const router = useRouter();
@@ -21,7 +22,7 @@ export default function MappingsManager({ mappings }: { mappings: any[] }) {
     e.preventDefault();
     setError("");
     setLoading(true);
-    const res = await fetch("/api/lab-test-name-mappings", {
+    const res = await apiFetch("/api/lab-test-name-mappings", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ externalTestName, internalTestKey, category }),

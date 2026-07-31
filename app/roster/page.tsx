@@ -1,35 +1,33 @@
+import { redirect } from "next/navigation";
 import AppShell from "@/components/AppShell";
 import PageHeader from "@/components/ui/PageHeader";
 import RosterBoard from "@/components/roster/RosterBoard";
-import { getDb } from "@/lib/mongodb";
-import { requireSession } from "@/lib/api";
-import type { User, RoleSlotDefinition, ShiftAssignment, DayTypeCalendar } from "@/lib/models/types";
+import { requireSession, apiFetchServer } from "@/lib/api";
+
+// Wire format from GET /api/roster/board — dates and _ids arrive as strings.
+type RosterBoardData = {
+  users: { _id: string; fullName: string; role: string }[];
+  slots: { _id: string; dayType: string; personType: string; shiftType: string; category: string; label: string }[];
+  assignments: { _id: string; date: string; roleSlotDefinitionId: string; userId: string | null; startTime?: string | null; endTime?: string | null }[];
+  calendar: { _id: string; date: string; dayType: string; surgeryOverlay: boolean }[];
+};
 
 export default async function RosterPage() {
   const session = await requireSession();
-  const db = await getDb();
+  if (!session) redirect("/login");
 
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const end = new Date(today);
-  end.setDate(end.getDate() + 14);
-
-  const [users, slots, assignments, calendar] = await Promise.all([
-    db.collection<User>("users").find({ status: "active" }).project({ passwordHash: 0 }).sort({ fullName: 1 }).toArray(),
-    db.collection<RoleSlotDefinition>("roleSlotDefinitions").find().toArray(),
-    db.collection<ShiftAssignment>("shiftAssignments").find({ date: { $gte: today, $lt: end } }).toArray(),
-    db.collection<DayTypeCalendar>("dayTypeCalendar").find({ date: { $gte: today, $lt: end } }).toArray(),
-  ]);
+  const data = await apiFetchServer<RosterBoardData>("/api/roster/board");
+  if (!data) redirect("/login");
 
   return (
     <AppShell>
       <div className="max-w-4xl mx-auto p-4 md:p-8">
         <PageHeader title="Roster" subtitle="Shift assignments for the next 14 days" />
         <RosterBoard
-          users={JSON.parse(JSON.stringify(users))}
-          slots={JSON.parse(JSON.stringify(slots))}
-          assignments={JSON.parse(JSON.stringify(assignments))}
-          calendar={JSON.parse(JSON.stringify(calendar))}
+          users={data.users}
+          slots={data.slots}
+          assignments={data.assignments}
+          calendar={data.calendar}
         />
       </div>
     </AppShell>

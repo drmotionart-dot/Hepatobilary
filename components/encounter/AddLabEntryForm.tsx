@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
 import { Select } from "@/components/ui/Select";
 import { LAB_CATEGORIES } from "@/lib/constants";
+import { apiFetch } from "@/lib/client-api";
 
 export default function AddLabEntryForm({ encounterId }: { encounterId: string }) {
   const router = useRouter();
@@ -23,7 +24,7 @@ export default function AddLabEntryForm({ encounterId }: { encounterId: string }
     setError("");
     setLoading(true);
 
-    const res = await fetch("/api/lab-panels", {
+    const res = await apiFetch("/api/lab-panels", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ encounterId, test, value, category, date: date || undefined }),

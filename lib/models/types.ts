@@ -2,7 +2,13 @@
 // Keep this file in sync with the spec — it's the single source of truth
 // for what a document in each collection looks like.
 
-import type { ObjectId } from "mongodb";
+// The frontend never constructs ObjectIds — every write happens in the
+// backend API — so a structural stand-in suffices for typing documents
+// that arrive as JSON (where _id serializes to a string).
+export type ObjectId = {
+  toString(): string;
+  toHexString(): string;
+};
 
 export type Role = "intern" | "resident" | "admin";
 export type AccountType = "self-registered" | "bulk-generated";

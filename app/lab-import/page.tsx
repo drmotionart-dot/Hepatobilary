@@ -1,26 +1,22 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import AppShell from "@/components/AppShell";
 import PageHeader from "@/components/ui/PageHeader";
 import Card from "@/components/ui/Card";
 import Badge from "@/components/ui/Badge";
 import LabImportUploader from "@/components/lab-import/LabImportUploader";
-import { ObjectId } from "mongodb";
-import { getDb } from "@/lib/mongodb";
-import { requireSession } from "@/lib/api";
+import { requireSession, apiFetchServer } from "@/lib/api";
 import { formatDateTime } from "@/lib/format";
 import type { LabImport, Patient } from "@/lib/models/types";
 
+type LabImportWithPatient = LabImport & { matchedPatient: Patient | null };
+
 export default async function LabImportPage() {
   const session = await requireSession();
-  const db = await getDb();
+  if (!session) redirect("/login");
 
-  const imports = await db.collection<LabImport>("labImports").find().sort({ importedAt: -1 }).limit(20).toArray();
-
-  const patientIds = imports.filter((i) => i.matchedPatientId).map((i) => i.matchedPatientId!.toString());
-  const patients = patientIds.length
-    ? await db.collection<Patient>("patients").find({ _id: { $in: [...new Set(patientIds)].map((id) => new ObjectId(id)) } }).toArray()
-    : [];
-  const patientMap = new Map(patients.map((p) => [p._id!.toString(), p]));
+  const imports = (await apiFetchServer<LabImportWithPatient[]>("/api/lab-import")) || [];
+  const recent = imports.slice(0, 20);
 
   return (
     <AppShell>
@@ -39,12 +35,12 @@ export default async function LabImportPage() {
           <LabImportUploader />
 
           <Card title="Recent imports">
-            {imports.length === 0 ? (
+            {recent.length === 0 ? (
               <p className="text-sm text-ink/50">No imports yet.</p>
             ) : (
               <ul className="flex flex-col divide-y divide-black/5">
-                {imports.map((i) => {
-                  const p = i.matchedPatientId ? patientMap.get(i.matchedPatientId.toString()) : null;
+                {recent.map((i) => {
+                  const p = i.matchedPatient;
                   return (
                     <li key={i._id!.toString()} className="py-2.5">
                       <div className="flex items-center justify-between">

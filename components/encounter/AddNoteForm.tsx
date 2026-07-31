@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
 import { Select } from "@/components/ui/Select";
 import { Textarea } from "@/components/ui/Textarea";
+import { apiFetch } from "@/lib/client-api";
 
 type TemplateField = {
   fieldKey: string;
@@ -33,7 +34,7 @@ export default function AddNoteForm({ encounterId, caseType }: { encounterId: st
 
   useEffect(() => {
     if (!open) return;
-    fetch(`/api/case-type-templates`).then((r) => r.json()).then((templates: any[]) => {
+    apiFetch(`/api/case-type-templates`).then((r) => r.json()).then((templates: any[]) => {
       const t = templates.find((x) => x.name.toLowerCase() === caseType) || templates.find((x) => x.name.toLowerCase() === "generic") || null;
       setTemplate(t);
     });
@@ -44,7 +45,7 @@ export default function AddNoteForm({ encounterId, caseType }: { encounterId: st
     setError("");
     setLoading(true);
 
-    const res = await fetch("/api/clinical-notes", {
+    const res = await apiFetch("/api/clinical-notes", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({

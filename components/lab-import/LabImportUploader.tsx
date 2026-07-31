@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
+import { apiFetch } from "@/lib/client-api";
 
 export default function LabImportUploader() {
   const router = useRouter();
@@ -22,7 +23,7 @@ export default function LabImportUploader() {
     const formData = new FormData();
     files.forEach((f) => formData.append("files", f));
 
-    const res = await fetch("/api/lab-import", { method: "POST", body: formData });
+    const res = await apiFetch("/api/lab-import", { method: "POST", body: formData });
     setLoading(false);
 
     if (!res.ok) {

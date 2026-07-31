@@ -1,24 +1,68 @@
-import { getServerSession } from "next-auth";
-import { ObjectId } from "mongodb";
-import { authOptions } from "@/lib/auth";
+import { cookies } from "next/headers";
+import { jwtVerify } from "jose";
 import type { Role } from "@/lib/models/types";
 
-export async function requireSession() {
-  return getServerSession(authOptions);
+// Server-side auth + data helpers for the UI-only frontend. The backend is
+// the single source of truth; every page here verifies the JWT cookie and
+// calls the backend with `Authorization: Bearer <token>`.
+
+export type SessionUser = {
+  id: string;
+  role: Role;
+  name?: string;
+  email?: string;
+  mustChangePassword?: boolean;
+};
+
+const TOKEN_COOKIE = "token";
+
+function getSecret() {
+  return new TextEncoder().encode(process.env.JWT_SECRET || "");
 }
 
-export async function requireRole(roles: Role[]) {
-  const session = await requireSession();
-  if (!session?.user) return null;
-  const role = (session.user as any).role as Role;
-  if (!roles.includes(role)) return null;
-  return session;
+export async function getTokenFromCookies(): Promise<string | null> {
+  const store = await cookies();
+  return store.get(TOKEN_COOKIE)?.value || null;
 }
 
-export function jsonError(message: string, status = 400) {
-  return Response.json({ error: message }, { status });
+export async function requireSession(): Promise<SessionUser | null> {
+  const token = await getTokenFromCookies();
+  if (!token) return null;
+  try {
+    const { payload } = await jwtVerify(token, getSecret());
+    const role = payload.role as Role;
+    const id = payload.sub;
+    if (!role || !id) return null;
+    return {
+      id,
+      role,
+      name: typeof payload.name === "string" ? payload.name : undefined,
+      email: typeof payload.email === "string" ? payload.email : undefined,
+      mustChangePassword: Boolean(payload.mustChangePassword),
+    };
+  } catch {
+    return null;
+  }
 }
 
-export function toObjectId(id: string) {
-  return new ObjectId(id);
+export async function requireRole(roles: Role[]): Promise<SessionUser | null> {
+  const user = await requireSession();
+  if (!user) return null;
+  if (!roles.includes(user.role)) return null;
+  return user;
+}
+
+export function apiUrl(path: string) {
+  const base = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001").replace(/\/+$/, "");
+  return `${base}${path}`;
+}
+
+export async function apiFetchServer<T>(path: string): Promise<T | null> {
+  const token = await getTokenFromCookies();
+  const res = await fetch(apiUrl(path), {
+    headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+    cache: "no-store",
+  });
+  if (!res.ok) return null;
+  return (await res.json()) as T;
 }

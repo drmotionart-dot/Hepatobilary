@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
 import { Select } from "@/components/ui/Select";
 import { CASE_TYPES } from "@/lib/constants";
+import { apiFetch } from "@/lib/client-api";
 
 type Patient = { _id: string; medicalNumber: string; fullName: string; age: number; sex: string };
 
@@ -34,7 +35,7 @@ export default function NewCaseForm() {
       setResults([]);
       return;
     }
-    const res = await fetch(`/api/patients?q=${encodeURIComponent(q)}`);
+    const res = await apiFetch(`/api/patients?q=${encodeURIComponent(q)}`);
     if (res.ok) setResults(await res.json());
   }
 
@@ -45,7 +46,7 @@ export default function NewCaseForm() {
 
     let patientId = selected?._id;
     if (!patientId) {
-      const pRes = await fetch("/api/patients", {
+      const pRes = await apiFetch("/api/patients", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ medicalNumber, fullName, age: Number(age), sex, labPatientCode: labPatientCode || undefined }),
@@ -60,7 +61,7 @@ export default function NewCaseForm() {
       patientId = p._id;
     }
 
-    const eRes = await fetch("/api/encounters", {
+    const eRes = await apiFetch("/api/encounters", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ patientId, type: "clinic", caseType, status: "active" }),

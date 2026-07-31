@@ -6,6 +6,7 @@ import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 import { Textarea } from "@/components/ui/Textarea";
 import { Label } from "@/components/ui/Label";
+import { apiFetch } from "@/lib/client-api";
 
 export default function StatusActions({ encounterId }: { encounterId: string }) {
   const router = useRouter();
@@ -22,7 +23,7 @@ export default function StatusActions({ encounterId }: { encounterId: string }) 
     setLoading(true);
 
     if (mode === "discharge") {
-      const res = await fetch("/api/discharge-forms", {
+      const res = await apiFetch("/api/discharge-forms", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -38,25 +39,25 @@ export default function StatusActions({ encounterId }: { encounterId: string }) 
         setLoading(false);
         return;
       }
-      await fetch(`/api/encounters/${encounterId}`, {
+      await apiFetch(`/api/encounters/${encounterId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: followUpInstructions.trim() ? "follow-up-pending" : "discharged" }),
       });
     } else if (mode === "follow-up") {
-      await fetch(`/api/encounters/${encounterId}`, {
+      await apiFetch(`/api/encounters/${encounterId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: "follow-up-pending" }),
       });
     } else if (mode === "close") {
-      await fetch(`/api/encounters/${encounterId}`, {
+      await apiFetch(`/api/encounters/${encounterId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: "closed" }),
       });
     } else if (mode === "refer-out") {
-      const res = await fetch("/api/referral-consults", {
+      const res = await apiFetch("/api/referral-consults", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ encounterId, toSpecialty: referSpecialty, reason: summary }),
@@ -67,7 +68,7 @@ export default function StatusActions({ encounterId }: { encounterId: string }) 
         setLoading(false);
         return;
       }
-      await fetch(`/api/encounters/${encounterId}`, {
+      await apiFetch(`/api/encounters/${encounterId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: "referred-out" }),

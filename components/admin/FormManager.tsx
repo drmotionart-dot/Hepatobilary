@@ -7,6 +7,7 @@ import Card from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
 import Badge from "@/components/ui/Badge";
+import { apiFetch } from "@/lib/client-api";
 
 export default function FormManager({ templates }: { templates: any[] }) {
   const router = useRouter();
@@ -29,7 +30,7 @@ export default function FormManager({ templates }: { templates: any[] }) {
         return { fieldKey: label.toLowerCase().replace(/[^a-z0-9]+/g, "_"), label, type };
       });
 
-    const res = await fetch("/api/form-templates", {
+    const res = await apiFetch("/api/form-templates", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name, fields: parsedFields, savedToSystem: true }),

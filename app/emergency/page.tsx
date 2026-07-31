@@ -1,42 +1,23 @@
+import { redirect } from "next/navigation";
 import AppShell from "@/components/AppShell";
 import PageHeader from "@/components/ui/PageHeader";
 import EmergencyAssessmentForm from "@/components/emergency/EmergencyAssessmentForm";
 import Card from "@/components/ui/Card";
 import Badge from "@/components/ui/Badge";
-import { ObjectId } from "mongodb";
-import { getDb } from "@/lib/mongodb";
-import { requireSession } from "@/lib/api";
+import { requireSession, apiFetchServer } from "@/lib/api";
 import { formatDateTime } from "@/lib/format";
-import type { Encounter, Patient, ClinicalNote } from "@/lib/models/types";
+import type { Encounter, Patient } from "@/lib/models/types";
+
+type EmergencyEncounter = Encounter & {
+  patient: Patient | null;
+  noteSummary: string;
+};
 
 export default async function EmergencyPage() {
   const session = await requireSession();
-  const db = await getDb();
+  if (!session) redirect("/login");
 
-  // Recent emergency cases seen today / in the last 24h
-  const since = new Date(Date.now() - 24 * 60 * 60 * 1000);
-  const encounters = await db.collection<Encounter>("encounters")
-    .find({ type: "emergency", openedAt: { $gte: since } })
-    .sort({ openedAt: -1 })
-    .limit(20)
-    .toArray();
-
-  const patientIds = [...new Set(encounters.map((e) => e.patientId.toString()))];
-  const patients = patientIds.length
-    ? await db.collection<Patient>("patients").find({ _id: { $in: patientIds.map((id) => new ObjectId(id)) } }).toArray()
-    : [];
-  const patientMap = new Map(patients.map((p) => [p._id!.toString(), p]));
-
-  const encounterIds = encounters.map((e) => e._id!.toString());
-  const notes = encounterIds.length
-    ? await db.collection<ClinicalNote>("clinicalNotes").find({ encounterId: { $in: encounterIds.map((id) => new ObjectId(id)) }, context: "emergency-assessment" }).toArray()
-    : [];
-  const notesByEncounter = new Map<string, string>();
-  for (const n of notes) {
-    if (!notesByEncounter.has(n.encounterId.toString())) {
-      notesByEncounter.set(n.encounterId.toString(), n.complaint?.main || n.presentingLine || "");
-    }
-  }
+  const encounters = (await apiFetchServer<EmergencyEncounter[]>("/api/emergency/recent")) || [];
 
   return (
     <AppShell>
@@ -52,14 +33,14 @@ export default async function EmergencyPage() {
             ) : (
               <ul className="flex flex-col divide-y divide-black/5">
                 {encounters.map((e) => {
-                  const p = patientMap.get(e.patientId.toString());
+                  const p = e.patient;
                   return (
                     <li key={e._id!.toString()} className="py-2.5 flex items-center justify-between">
                       <div>
                         <p className="text-sm font-medium">{p?.fullName || "Unknown"}</p>
                         <p className="text-xs text-ink/50">
                           {p?.medicalNumber} · {formatDateTime(e.openedAt)}
-                          {notesByEncounter.get(e._id!.toString()) ? ` · ${notesByEncounter.get(e._id!.toString())}` : ""}
+                          {e.noteSummary ? ` · ${e.noteSummary}` : ""}
                         </p>
                       </div>
                       <Badge tone={e.status === "active" ? "success" : "default"}>{e.status}</Badge>

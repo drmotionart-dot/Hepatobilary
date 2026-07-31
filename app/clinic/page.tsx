@@ -1,30 +1,21 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import AppShell from "@/components/AppShell";
 import PageHeader from "@/components/ui/PageHeader";
 import Card from "@/components/ui/Card";
 import Badge from "@/components/ui/Badge";
 import NewCaseForm from "@/components/clinic/NewCaseForm";
-import { ObjectId } from "mongodb";
-import { getDb } from "@/lib/mongodb";
-import { requireSession } from "@/lib/api";
+import { requireSession, apiFetchServer } from "@/lib/api";
 import { formatDate } from "@/lib/format";
 import type { Encounter, Patient } from "@/lib/models/types";
 
+type ClinicEncounter = Encounter & { patient: Patient | null };
+
 export default async function ClinicPage() {
   const session = await requireSession();
-  const db = await getDb();
+  if (!session) redirect("/login");
 
-  const followUps = await db.collection<Encounter>("encounters")
-    .find({ status: "follow-up-pending" })
-    .sort({ openedAt: -1 })
-    .limit(20)
-    .toArray();
-
-  const patientIds = [...new Set(followUps.map((e) => e.patientId.toString()))];
-  const patients = patientIds.length
-    ? await db.collection<Patient>("patients").find({ _id: { $in: patientIds.map((id) => new ObjectId(id)) } }).toArray()
-    : [];
-  const patientMap = new Map(patients.map((p) => [p._id!.toString(), p]));
+  const followUps = (await apiFetchServer<ClinicEncounter[]>("/api/encounters?type=clinic&status=follow-up-pending")) || [];
 
   return (
     <AppShell>
@@ -40,7 +31,7 @@ export default async function ClinicPage() {
             ) : (
               <ul className="flex flex-col divide-y divide-black/5">
                 {followUps.map((e) => {
-                  const p = patientMap.get(e.patientId.toString());
+                  const p = e.patient;
                   return (
                     <li key={e._id!.toString()} className="py-2.5 flex items-center justify-between">
                       <div>

@@ -1,25 +1,18 @@
+import { redirect } from "next/navigation";
 import AppShell from "@/components/AppShell";
 import PageHeader from "@/components/ui/PageHeader";
 import Card from "@/components/ui/Card";
-import { getDb } from "@/lib/mongodb";
-import { requireRole } from "@/lib/api";
-import { redirect } from "next/navigation";
+import { requireRole, apiFetchServer } from "@/lib/api";
 import { formatDateTime } from "@/lib/format";
-import { ObjectId } from "mongodb";
 import type { AuditLog } from "@/lib/models/types";
+
+type AuditLogWithName = AuditLog & { performedByName: string };
 
 export default async function AdminAuditPage() {
   const session = await requireRole(["resident", "admin"]);
   if (!session) redirect("/dashboard");
 
-  const db = await getDb();
-  const logs = await db.collection<AuditLog>("auditLogs").find().sort({ performedAt: -1 }).limit(200).toArray();
-
-  const userIds = [...new Set(logs.map((l) => l.performedBy.toString()))];
-  const users = userIds.length
-    ? await db.collection("users").find({ _id: { $in: userIds.map((id) => new ObjectId(id)) } }).toArray()
-    : [];
-  const userMap = new Map(users.map((u: any) => [u._id.toString(), u.fullName]));
+  const logs = (await apiFetchServer<AuditLogWithName[]>("/api/audit-log?limit=200")) || [];
 
   return (
     <AppShell>
@@ -45,7 +38,7 @@ export default async function AdminAuditPage() {
                   {logs.map((l) => (
                     <tr key={l._id!.toString()} className="border-b border-black/5">
                       <td className="py-2 pr-3 whitespace-nowrap text-xs text-ink/60">{formatDateTime(l.performedAt)}</td>
-                      <td className="py-2 pr-3">{userMap.get(l.performedBy.toString()) || "Unknown"}</td>
+                      <td className="py-2 pr-3">{l.performedByName || "Unknown"}</td>
                       <td className="py-2 pr-3 font-mono text-xs">{l.collection}</td>
                       <td className="py-2 pr-3">
                         <span className={`text-xs font-medium ${l.action === "create" ? "text-success" : l.action === "delete" ? "text-danger" : "text-warning"}`}>

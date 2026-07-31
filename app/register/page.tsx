@@ -7,6 +7,7 @@ import Button from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
 import { Select } from "@/components/ui/Select";
+import { apiFetch } from "@/lib/client-api";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -24,7 +25,7 @@ export default function RegisterPage() {
     setMessage("");
     setLoading(true);
 
-    const res = await fetch("/api/register", {
+    const res = await apiFetch("/api/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ fullName, email, password, role }),

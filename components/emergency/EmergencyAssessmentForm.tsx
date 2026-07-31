@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/Label";
 import { Select } from "@/components/ui/Select";
 import { Textarea } from "@/components/ui/Textarea";
 import { CASE_TYPES } from "@/lib/constants";
+import { apiFetch } from "@/lib/client-api";
 
 export default function EmergencyAssessmentForm() {
   const router = useRouter();
@@ -39,14 +40,14 @@ export default function EmergencyAssessmentForm() {
   async function search(e?: React.FormEvent) {
     e?.preventDefault();
     if (!q.trim()) return;
-    const res = await fetch(`/api/patients?q=${encodeURIComponent(q)}`);
+    const res = await apiFetch(`/api/patients?q=${encodeURIComponent(q)}`);
     if (res.ok) setResults(await res.json());
   }
 
   async function openEncounter(patientId: string) {
     setError("");
     setLoading(true);
-    const eRes = await fetch("/api/encounters", {
+    const eRes = await apiFetch("/api/encounters", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ patientId, type: "emergency", caseType, status: "active", ward }),
@@ -73,7 +74,7 @@ export default function EmergencyAssessmentForm() {
     }
 
     setLoading(true);
-    const pRes = await fetch("/api/patients", {
+    const pRes = await apiFetch("/api/patients", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ medicalNumber, fullName, age: Number(age), sex }),
@@ -97,7 +98,7 @@ export default function EmergencyAssessmentForm() {
     setError("");
     setLoading(true);
 
-    const res = await fetch("/api/clinical-notes", {
+    const res = await apiFetch("/api/clinical-notes", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({

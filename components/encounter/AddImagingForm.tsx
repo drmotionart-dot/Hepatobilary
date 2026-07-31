@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
 import { Select } from "@/components/ui/Select";
 import { Textarea } from "@/components/ui/Textarea";
+import { apiFetch } from "@/lib/client-api";
 
 const MODALITIES = ["CT", "US", "Doppler", "MRI", "X-ray", "Mammography"];
 
@@ -27,7 +28,7 @@ export default function AddImagingForm({ encounterId }: { encounterId: string })
     setError("");
     setLoading(true);
 
-    const res = await fetch("/api/imaging-requests", {
+    const res = await apiFetch("/api/imaging-requests", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ encounterId, modality, modalityDetail, clinicalDiagnosis, pertinentClinicalData, partToBeExamined, aimOfExamination }),

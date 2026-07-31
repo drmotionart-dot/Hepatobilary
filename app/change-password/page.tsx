@@ -2,10 +2,10 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { signOut } from "next-auth/react";
 import Button from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
+import { apiFetch, setToken, clearToken } from "@/lib/client-api";
 
 export default function ChangePasswordPage() {
   const router = useRouter();
@@ -24,18 +24,21 @@ export default function ChangePasswordPage() {
     }
 
     setLoading(true);
-    const res = await fetch("/api/change-password", {
+    const res = await apiFetch("/api/change-password", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ currentPassword, newPassword }),
     });
+    const data = await res.json();
     setLoading(false);
 
     if (!res.ok) {
-      const data = await res.json();
       setError(data.error || "Could not change password");
       return;
     }
+
+    // The backend issues a fresh token with mustChangePassword cleared.
+    if (data.token) setToken(data.token);
 
     router.push("/dashboard");
     router.refresh();
@@ -71,7 +74,10 @@ export default function ChangePasswordPage() {
         </form>
 
         <button
-          onClick={() => signOut({ callbackUrl: "/login" })}
+          onClick={() => {
+            clearToken();
+            router.push("/login");
+          }}
           className="mt-4 text-xs text-ink/50 hover:text-ink/80"
         >
           Sign out

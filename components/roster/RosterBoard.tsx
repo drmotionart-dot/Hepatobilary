@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/Label";
 import { Select } from "@/components/ui/Select";
 import Badge from "@/components/ui/Badge";
 import { DAY_TYPES } from "@/lib/constants";
+import { apiFetch } from "@/lib/client-api";
 
 type User = { _id: string; fullName: string; role: string };
 type Slot = { _id: string; dayType: string; personType: string; shiftType: string; category: string; label: string };
@@ -72,7 +73,7 @@ export default function RosterBoard({ users, slots, assignments, calendar }: {
 
   async function setDayType(dayType: string, surgeryOverlay: boolean) {
     setError("");
-    const res = await fetch("/api/day-type-calendar", {
+    const res = await apiFetch("/api/day-type-calendar", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ date: selected, dayType, surgeryOverlay }),
@@ -88,7 +89,7 @@ export default function RosterBoard({ users, slots, assignments, calendar }: {
 
   async function assignUser(slotId: string, userId: string) {
     setError("");
-    const res = await fetch("/api/shift/assignments", {
+    const res = await apiFetch("/api/shift/assignments", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ date: selected, roleSlotDefinitionId: slotId, userId: userId || null }),
@@ -109,7 +110,7 @@ export default function RosterBoard({ users, slots, assignments, calendar }: {
       setError("Pick an end date");
       return;
     }
-    const res = await fetch("/api/shift/assignments", {
+    const res = await apiFetch("/api/shift/assignments", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ from: bulkFrom, to: bulkTo }),

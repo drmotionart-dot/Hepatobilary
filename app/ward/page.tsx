@@ -1,14 +1,23 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import AppShell from "@/components/AppShell";
 import PageHeader from "@/components/ui/PageHeader";
 import Card from "@/components/ui/Card";
 import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
-import { ObjectId } from "mongodb";
-import { getDb } from "@/lib/mongodb";
-import { requireSession } from "@/lib/api";
+import { requireSession, apiFetchServer } from "@/lib/api";
 import { formatDate, dayName } from "@/lib/format";
-import type { Encounter, Patient, ClinicalNote } from "@/lib/models/types";
+import type { Patient } from "@/lib/models/types";
+
+type WardEncounter = {
+  _id: string;
+  patientId: string;
+  caseType: string;
+  status: string;
+  openedAt: string;
+  patient: Patient | null;
+  lastNote: { presentingLine?: string } | null;
+};
 
 export default async function WardPage({
   searchParams,
@@ -16,30 +25,11 @@ export default async function WardPage({
   searchParams: { ward?: string };
 }) {
   const session = await requireSession();
-  const db = await getDb();
+  if (!session) redirect("/login");
+
   const activeWard = searchParams.ward === "female" ? "female" : "male";
-
-  const encounters = await db.collection<Encounter>("encounters")
-    .find({ status: "active", type: "ward", ward: activeWard })
-    .sort({ openedAt: -1 })
-    .toArray();
-
-  const patientIds = [...new Set(encounters.map((e) => e.patientId.toString()))];
-  const patients = patientIds.length
-    ? await db.collection<Patient>("patients").find({ _id: { $in: patientIds.map((id) => new ObjectId(id)) } }).toArray()
-    : [];
-  const patientMap = new Map(patients.map((p) => [p._id!.toString(), p]));
-
-  const encounterIds = encounters.map((e) => e._id!.toString());
-  const notes = encounterIds.length
-    ? await db.collection<ClinicalNote>("clinicalNotes").find({ encounterId: { $in: encounterIds.map((id) => new ObjectId(id)) } }).toArray()
-    : [];
-  const notesByEncounter = new Map<string, ClinicalNote[]>();
-  for (const n of notes) {
-    const key = n.encounterId.toString();
-    if (!notesByEncounter.has(key)) notesByEncounter.set(key, []);
-    notesByEncounter.get(key)!.push(n);
-  }
+  const encounters = await apiFetchServer<WardEncounter[]>(`/api/ward?ward=${activeWard}`);
+  if (!encounters) redirect("/login");
 
   return (
     <AppShell>
@@ -75,11 +65,10 @@ export default async function WardPage({
             </Card>
           ) : (
             encounters.map((e) => {
-              const p = patientMap.get(e.patientId.toString());
-              const noteList = notesByEncounter.get(e._id!.toString()) || [];
-              const lastNote = noteList[noteList.length - 1];
+              const p = e.patient;
+              const lastNote = e.lastNote;
               return (
-                <Link key={e._id!.toString()} href={`/ward/${e._id}`}>
+                <Link key={e._id.toString()} href={`/ward/${e._id}`}>
                   <Card className="hover:border-primary/40 transition-colors">
                     <div className="flex items-center justify-between">
                       <div>

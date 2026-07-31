@@ -1,12 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Button from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
+import { apiFetch, setToken } from "@/lib/client-api";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -20,20 +20,23 @@ export default function LoginPage() {
     setError("");
     setLoading(true);
 
-    const res = await signIn("credentials", { email, password, redirect: false });
+    const res = await apiFetch("/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    });
+    const data = await res.json();
     setLoading(false);
 
-    if (!res || res.error) {
-      setError(res?.error === "CredentialsSignin"
-        ? "Invalid email or password"
-        : res?.error || "Could not sign in");
+    if (!res.ok) {
+      setError(data.error || "Could not sign in");
       return;
     }
 
+    setToken(data.token);
+
     // Must-change-password users get pushed through the forced flow.
-    const sessionRes = await fetch("/api/auth/session");
-    const session = await sessionRes.json();
-    if (session?.user?.mustChangePassword) {
+    if (data.user?.mustChangePassword) {
       router.push("/change-password");
       return;
     }
