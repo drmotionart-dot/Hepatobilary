@@ -8,9 +8,10 @@ import { Textarea } from "@/components/ui/Textarea";
 import { Label } from "@/components/ui/Label";
 import { apiFetch } from "@/lib/client-api";
 
-export default function StatusActions({ encounterId }: { encounterId: string }) {
+export default function StatusActions({ encounterId, encounterType }: { encounterId: string; encounterType?: string }) {
   const router = useRouter();
-  const [mode, setMode] = useState<"none" | "discharge" | "follow-up" | "close" | "refer-out">("none");
+  const [mode, setMode] = useState<"none" | "admit" | "discharge" | "follow-up" | "close" | "refer-out">("none");
+  const [ward, setWard] = useState("male");
   const [summary, setSummary] = useState("");
   const [followUpInstructions, setFollowUpInstructions] = useState("");
   const [referSpecialty, setReferSpecialty] = useState("");
@@ -22,7 +23,19 @@ export default function StatusActions({ encounterId }: { encounterId: string }) 
     setError("");
     setLoading(true);
 
-    if (mode === "discharge") {
+    if (mode === "admit") {
+      const res = await apiFetch(`/api/encounters/${encounterId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type: "ward", ward }),
+      });
+      if (!res.ok) {
+        const d = await res.json();
+        setError(d.error || "Could not admit to ward");
+        setLoading(false);
+        return;
+      }
+    } else if (mode === "discharge") {
       const res = await apiFetch("/api/discharge-forms", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -80,6 +93,7 @@ export default function StatusActions({ encounterId }: { encounterId: string }) 
   }
 
   const actions = [
+    ...(encounterType !== "ward" ? [{ key: "admit" as const, label: "Admit to ward" }] : []),
     { key: "discharge" as const, label: "Discharge" },
     { key: "follow-up" as const, label: "Follow-up" },
     { key: "close" as const, label: "Close case" },
@@ -106,6 +120,19 @@ export default function StatusActions({ encounterId }: { encounterId: string }) 
 
       {mode !== "none" && (
         <form onSubmit={handleSubmit} className="mt-4 flex flex-col gap-3">
+          {mode === "admit" && (
+            <div>
+              <Label>Admit to</Label>
+              <select
+                className="w-full rounded-lg border border-black/10 bg-white px-3 py-2 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+                value={ward}
+                onChange={(e) => setWard(e.target.value)}
+              >
+                <option value="male">Male ward</option>
+                <option value="female">Female ward</option>
+              </select>
+            </div>
+          )}
           {mode === "refer-out" && (
             <div>
               <Label>Specialty to refer to</Label>
@@ -117,7 +144,7 @@ export default function StatusActions({ encounterId }: { encounterId: string }) 
               />
             </div>
           )}
-          {mode !== "close" && (
+          {mode !== "close" && mode !== "admit" && (
             <div>
               <Label>{mode === "discharge" ? "Discharge summary" : mode === "refer-out" ? "Reason" : "Follow-up plan"}</Label>
               <Textarea

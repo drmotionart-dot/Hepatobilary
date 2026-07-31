@@ -48,7 +48,7 @@ export default async function EncounterPage({ params }: { params: { id: string }
           action={<Badge tone={statusTone as any}>{encounter.status}</Badge>}
         />
 
-        {encounter.status === "active" && <StatusActions encounterId={encounter._id!.toString()} />}
+        {encounter.status === "active" && <StatusActions encounterId={encounter._id!.toString()} encounterType={encounter.type} />}
 
         <div className="flex flex-col gap-5 mt-5">
           {/* Clinical notes */}

@@ -134,7 +134,7 @@ export default async function WardPage() {
           subtitle="Day-by-day board — active inpatients by side"
           action={
             <Link href="/clinic">
-              <Button size="sm">+ Open new case</Button>
+              <Button size="sm">+ Open new case (clinic)</Button>
             </Link>
           }
         />
