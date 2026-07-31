@@ -11,6 +11,7 @@ import AddImagingForm from "@/components/encounter/AddImagingForm";
 import AddReferralForm from "@/components/encounter/AddReferralForm";
 import ReferralReview from "@/components/encounter/ReferralReview";
 import AddTreatmentForm from "@/components/encounter/AddTreatmentForm";
+import AddOperationForm from "@/components/encounter/AddOperationForm";
 import { requireSession, apiFetchServer } from "@/lib/api";
 import { formatDate, formatDateTime } from "@/lib/format";
 import { caseTypeDisplay } from "@/lib/constants";
@@ -38,6 +39,7 @@ export default async function EncounterPage({ params }: { params: { id: string }
   const { encounter, patient, notes, labPanel, imaging, referrals, treatmentLog, operation, discharge } = data;
 
   const statusTone = encounter.status === "active" ? "success" : encounter.status === "discharged" ? "info" : "warning";
+  const canEditOperation = session.role === "resident" || session.role === "admin";
 
   return (
     <AppShell>
@@ -163,32 +165,54 @@ export default async function EncounterPage({ params }: { params: { id: string }
           </Card>
 
           {/* Operation */}
-          {operation && (
-            <Card title="Operation record">
-              <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2 text-sm">
-                <dt className="text-xs text-ink/50">Procedure</dt>
-                <dd className="font-medium">{operation.procedureName}</dd>
-                <dt className="text-xs text-ink/50">Pre-op diagnosis</dt>
-                <dd>{operation.preOpDiagnosis}</dd>
-                <dt className="text-xs text-ink/50">Post-op diagnosis</dt>
-                <dd>{operation.postOpDiagnosis}</dd>
-                <dt className="text-xs text-ink/50">Anesthesia</dt>
-                <dd>{operation.anesthesiaType} — {operation.anesthetist}</dd>
-                <dt className="text-xs text-ink/50">EBL</dt>
-                <dd>{operation.estimatedBloodLoss}</dd>
-                <dt className="text-xs text-ink/50">Findings</dt>
-                <dd>{operation.findings}</dd>
-                <dt className="text-xs text-ink/50">Procedure details</dt>
-                <dd className="sm:col-span-1">{operation.procedureDetails}</dd>
-                <dt className="text-xs text-ink/50">Complications</dt>
-                <dd>{operation.complications || "None"}</dd>
-                <dt className="text-xs text-ink/50">Specimens</dt>
-                <dd>{operation.specimensSent.join(", ") || "None"}</dd>
-                <dt className="text-xs text-ink/50">Post-op plan</dt>
-                <dd className="sm:col-span-1">{operation.postOpPlan}</dd>
-              </dl>
-            </Card>
-          )}
+          <Card title="Operation record">
+            {!operation ? (
+              <div>
+                <p className="text-sm text-ink/50 mb-3">No operation recorded.</p>
+                {canEditOperation && (
+                  <AddOperationForm encounterId={encounter._id!.toString()} patientNo={patient?.medicalNumber || ""} />
+                )}
+              </div>
+            ) : (
+              <div>
+                <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                  <dt className="text-xs text-ink/50">Procedure</dt>
+                  <dd className="font-medium">{operation.procedureName}</dd>
+                  <dt className="text-xs text-ink/50">Date</dt>
+                  <dd>{operation.date ? formatDate(operation.date) : ""}</dd>
+                  <dt className="text-xs text-ink/50">Surgeon</dt>
+                  <dd>{operation.surgeonName || "Unknown"}</dd>
+                  <dt className="text-xs text-ink/50">Assistants</dt>
+                  <dd>{(operation.assistantNames || []).join(", ") || "—"}</dd>
+                  <dt className="text-xs text-ink/50">Pre-op diagnosis</dt>
+                  <dd>{operation.preOpDiagnosis}</dd>
+                  <dt className="text-xs text-ink/50">Post-op diagnosis</dt>
+                  <dd>{operation.postOpDiagnosis}</dd>
+                  <dt className="text-xs text-ink/50">Anesthesia</dt>
+                  <dd>{operation.anesthesiaType} — {operation.anesthetist}</dd>
+                  <dt className="text-xs text-ink/50">EBL</dt>
+                  <dd>{operation.estimatedBloodLoss}</dd>
+                  <dt className="text-xs text-ink/50">Findings</dt>
+                  <dd>{operation.findings}</dd>
+                  <dt className="text-xs text-ink/50">Procedure details</dt>
+                  <dd className="sm:col-span-1">{operation.procedureDetails}</dd>
+                  <dt className="text-xs text-ink/50">Complications</dt>
+                  <dd>{operation.complications || "None"}</dd>
+                  <dt className="text-xs text-ink/50">Specimens</dt>
+                  <dd>{operation.specimensSent.join(", ") || "None"}</dd>
+                  <dt className="text-xs text-ink/50">Post-op plan</dt>
+                  <dd className="sm:col-span-1">{operation.postOpPlan}</dd>
+                </dl>
+                {canEditOperation && (
+                  <AddOperationForm
+                    encounterId={encounter._id!.toString()}
+                    patientNo={patient?.medicalNumber || ""}
+                    existing={operation}
+                  />
+                )}
+              </div>
+            )}
+          </Card>
 
           {/* Discharge */}
           {discharge && (

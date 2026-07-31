@@ -246,6 +246,8 @@ export interface OperationForm {
   complications: string;
   postOpPlan: string;
   date: Date;
+  surgeonName?: string;
+  assistantNames?: string[];
 }
 
 export interface DischargeForm {
