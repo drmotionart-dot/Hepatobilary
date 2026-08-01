@@ -83,7 +83,7 @@ export default function ShiftKeyCard({ role: roleProp }: { role?: string }) {
   const canGenerate = role === "admin" || role === "resident" || (role === "intern" && internCanGenerate);
 
   return (
-    <Card title="Ward shift key" className="flex flex-col gap-3">
+    <Card title="Ward shift key" id="shift-key-card" className="flex flex-col gap-3">
       {error && <p className="text-xs text-danger">{error}</p>}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-wrap items-center gap-3">

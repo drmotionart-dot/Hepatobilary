@@ -108,6 +108,7 @@ export default function TopBar({ user }: { user: UserInfo | null }) {
               <IconSearch />
             </span>
             <input
+              id="global-search"
               value={q}
               onChange={(e) => {
                 setQ(e.target.value);
@@ -151,6 +152,15 @@ export default function TopBar({ user }: { user: UserInfo | null }) {
         <div className="hidden sm:block">
           <ShiftKeyBadge />
         </div>
+
+        <button
+          type="button"
+          onClick={() => window.dispatchEvent(new CustomEvent("hpb:relaunch-tour"))}
+          title="Relaunch the onboarding tour"
+          className="inline-flex items-center justify-center rounded-lg border border-border p-2 text-ink/70 transition-colors hover:bg-primary/10 hover:text-primary"
+        >
+          <IconCompass />
+        </button>
 
         <button
           type="button"
@@ -211,6 +221,15 @@ export default function TopBar({ user }: { user: UserInfo | null }) {
         )}
       </div>
     </header>
+  );
+}
+
+function IconCompass() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="10" />
+      <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" />
+    </svg>
   );
 }
 
