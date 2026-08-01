@@ -6,7 +6,7 @@ import { requireRole, apiFetchServer } from "@/lib/api";
 import type { CaseTypeTemplate } from "@/lib/models/types";
 
 export default async function AdminTemplatesPage() {
-  const session = await requireRole(["admin"]);
+  const session = await requireRole(["admin", "resident"]);
   if (!session) redirect("/dashboard");
 
   const templates = await apiFetchServer<CaseTypeTemplate[]>("/api/case-type-templates");

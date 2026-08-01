@@ -6,7 +6,7 @@ import { requireRole, apiFetchServer } from "@/lib/api";
 import type { LabTestNameMapping } from "@/lib/models/types";
 
 export default async function MappingsPage() {
-  const session = await requireRole(["admin"]);
+  const session = await requireRole(["admin", "resident"]);
   if (!session) redirect("/dashboard");
 
   const mappings = (await apiFetchServer<LabTestNameMapping[]>("/api/lab-test-name-mappings")) || [];

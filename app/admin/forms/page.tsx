@@ -6,7 +6,7 @@ import { requireRole, apiFetchServer } from "@/lib/api";
 import type { FormTemplate } from "@/lib/models/types";
 
 export default async function AdminFormsPage() {
-  const session = await requireRole(["admin"]);
+  const session = await requireRole(["admin", "resident"]);
   if (!session) redirect("/dashboard");
 
   const templates = (await apiFetchServer<FormTemplate[]>("/api/form-templates")) || [];

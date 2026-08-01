@@ -12,6 +12,7 @@ import { requireRole } from "@/lib/api";
 
 const ALL_LINKS = [
   { href: "/admin/users", title: "Users & approvals", desc: "Approve self-registrations, create accounts, manage capabilities & lifecycle" },
+  { href: "/admin/interns", title: "Round Interns", desc: "Active interns this round — profiles, attendance & rotation import" },
   { href: "/admin/templates", title: "Case type templates", desc: "LE checklists, risk factors, lab presets, diet instructions" },
   { href: "/admin/forms", title: "Form templates", desc: "Custom departmental form definitions" },
   { href: "/lab-import/mappings", title: "Lab test mappings", desc: "PDF test names → internal lab panel keys" },
@@ -23,7 +24,9 @@ export default async function AdminPage() {
   if (!session) redirect("/dashboard");
 
   const isAdmin = session.role === "admin";
-  const links = isAdmin ? ALL_LINKS : ALL_LINKS.filter((l) => ["/admin/users", "/admin/audit"].includes(l.href));
+  // Resident panel (spec §7): everything operational — Round Interns, templates,
+  // forms, lab mappings, audit. Account management (/admin/users) is admin-only.
+  const links = isAdmin ? ALL_LINKS : ALL_LINKS.filter((l) => !["/admin/users"].includes(l.href));
 
   return (
     <AppShell>

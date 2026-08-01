@@ -6,7 +6,9 @@ import { requireRole, apiFetchServer } from "@/lib/api";
 import type { User } from "@/lib/models/types";
 
 export default async function AdminUsersPage() {
-  const session = await requireRole(["admin", "resident"]);
+  // Account management is admin-only (spec §7); residents reach interns via
+  // the Round Interns directory instead.
+  const session = await requireRole(["admin"]);
   if (!session) redirect("/dashboard");
 
   const users = await apiFetchServer<User[]>("/api/admin/users");

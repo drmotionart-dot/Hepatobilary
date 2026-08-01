@@ -84,9 +84,11 @@ export default async function UserProfilePage({ params }: { params: { id: string
           </div>
         </Card>
 
+        {session.role === "admin" && (
         <Card title="Capabilities" className="flex flex-col gap-2">
           <CapabilityManager userId={u._id} granted={u.grantedCapabilities || []} />
         </Card>
+        )}
 
         <Card title="Attendance" className="flex flex-col gap-2">
           <AttendancePanel userId={u._id} records={data.attendance} />
