@@ -9,11 +9,15 @@ import ShiftKeyCard from "@/components/shift-key/ShiftKeyCard";
 import { requireSession, apiFetchServer } from "@/lib/api";
 import { formatDate } from "@/lib/format";
 
+// Today's calendar ring is computed client-side (CalendarCard), so the page
+// must never be cached/prerendered with a stale "today".
+export const dynamic = "force-dynamic";
+
 type DashboardData = {
   dayType: string;
   surgeryOverlay: boolean;
   activeShift: string;
-  people: { name: string; category: string }[];
+  people: { id: string; name: string; category: string }[];
   counters: { activeWard: number; followUpPending: number; needsReviewImports: number };
   followUps: {
     _id: string;
@@ -36,14 +40,10 @@ export default async function DashboardPage() {
 
   const { dayType, activeShift, people, counters, followUps, serverNow, shift, month } = data;
 
-  const today = new Date();
-  const todayKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
-  const monthLabel = today.toLocaleDateString("en-GB", { month: "long", year: "numeric" });
-
   return (
     <AppShell>
       <div className="max-w-3xl mx-auto p-4 md:p-8 flex flex-col gap-6">
-        <OnShiftCard dayType={dayType} activeShift={activeShift} people={people} serverNow={serverNow} shift={shift} />
+        <OnShiftCard dayType={dayType} activeShift={activeShift} people={people} serverNow={serverNow} shift={shift} linkProfiles={session.role !== "intern"} />
 
         <ShiftKeyCard role={session.role} />
 
@@ -68,7 +68,7 @@ export default async function DashboardPage() {
           )}
         </div>
 
-        <CalendarCard monthLabel={monthLabel} days={month.days} todayKey={todayKey} />
+        <CalendarCard days={month.days} />
 
         <Card title="Follow-up queue">
           {followUps.length === 0 ? (

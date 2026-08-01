@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Card from "@/components/ui/Card";
 
@@ -8,22 +9,38 @@ type Day = { date: string; dayType: string; surgeryOverlay: boolean; assigned: n
 const WEEKDAYS = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
 const DAY_TYPE_LABEL: Record<string, string> = { normal: "N", clinic: "C", emergency: "E" };
 
+function dateKey(d: Date) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
 // Compact current-month calendar for the dashboard. Today is ringed, emergency
 // days are tinted, dots show how many people are assigned, and clicking a day
 // jumps straight to that day on the roster board (?day=YYYY-MM-DD).
-export default function CalendarCard({
-  monthLabel,
-  days,
-  todayKey,
-}: {
-  monthLabel: string;
-  days: Day[];
-  todayKey: string;
-}) {
+// "Today" is computed client-side and refreshed on an interval + window focus
+// so the ring always marks the real date — even if the server HTML was
+// rendered (or cached) earlier, the ring rolls over at midnight on its own.
+export default function CalendarCard({ days }: { days: Day[] }) {
   const router = useRouter();
+  const [todayKey, setTodayKey] = useState<string>(() => dateKey(new Date()));
+
+  useEffect(() => {
+    const refresh = () => setTodayKey(dateKey(new Date()));
+    const id = setInterval(refresh, 60_000);
+    window.addEventListener("focus", refresh);
+    document.addEventListener("visibilitychange", refresh);
+    return () => {
+      clearInterval(id);
+      window.removeEventListener("focus", refresh);
+      document.removeEventListener("visibilitychange", refresh);
+    };
+  }, []);
+
   const first = new Date(`${days[0]?.date || "1970-01-01"}T00:00:00`);
   const offset = first.getDay();
   const cells: (Day | null)[] = [...Array(offset).fill(null), ...days];
+  const monthLabel = days[0]
+    ? new Date(`${days[0].date}T00:00:00`).toLocaleDateString("en-GB", { month: "long", year: "numeric" })
+    : "";
 
   return (
     <Card title={monthLabel} className="!p-4">

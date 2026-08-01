@@ -1,5 +1,6 @@
-type ShiftPerson = { name: string; category: string; startTime?: string | null; endTime?: string | null };
+type ShiftPerson = { id: string; name: string; category: string; startTime?: string | null; endTime?: string | null };
 type ShiftInfo = { startHour: number; activeDateKey: string; beforeStart: boolean };
+import Link from "next/link";
 import EmptyState from "@/components/ui/EmptyState";
 import ShiftClock from "@/components/dashboard/ShiftClock";
 
@@ -14,12 +15,16 @@ export default function OnShiftCard({
   people = [] as ShiftPerson[],
   serverNow,
   shift,
+  linkProfiles = false,
 }: {
   dayType?: string;
   activeShift?: string;
   people?: ShiftPerson[];
   serverNow?: string;
   shift?: ShiftInfo;
+  // Admin/resident: names link to the intern profile page (spec 11.8). Interns
+  // see plain text — profiles are role-gated.
+  linkProfiles?: boolean;
 }) {
   // Highlight the people whose shift window (startTime–endTime) includes the
   // dashboard's server clock — e.g. the 08:00–16:00 long shift while it's 11:00.
@@ -32,7 +37,7 @@ export default function OnShiftCard({
   }
 
   return (
-    <div className="rounded-2xl bg-surface p-5 shadow-sm border border-border">
+    <div id="on-shift-card" className="rounded-2xl bg-surface p-5 shadow-sm border border-border">
       <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
         <div className="flex items-center gap-2">
           <span className="h-2.5 w-2.5 rounded-full bg-success animate-on-shift-pulse" aria-hidden />
@@ -62,7 +67,17 @@ export default function OnShiftCard({
                       title={inWindow ? "On duty right now" : `Shift window ${p.startTime}–${p.endTime}`}
                     />
                   ) : null}
-                  <span className={`font-medium truncate ${inWindow ? "text-ink" : ""}`} dir="auto">{p.name}</span>
+                  {linkProfiles && p.id ? (
+                    <Link
+                      href={`/admin/users/${p.id}`}
+                      className={`font-medium truncate hover:text-primary hover:underline ${inWindow ? "text-ink" : ""}`}
+                      dir="auto"
+                    >
+                      {p.name}
+                    </Link>
+                  ) : (
+                    <span className={`font-medium truncate ${inWindow ? "text-ink" : ""}`} dir="auto">{p.name}</span>
+                  )}
                 </span>
                 <span className="text-muted whitespace-nowrap">{p.category}</span>
               </li>
