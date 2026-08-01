@@ -2,6 +2,7 @@
 import { redirect } from "next/navigation";
 import AppShell from "@/components/AppShell";
 import OnShiftCard from "@/components/OnShiftCard";
+import CalendarCard from "@/components/dashboard/CalendarCard";
 import Card from "@/components/ui/Card";
 import Badge from "@/components/ui/Badge";
 import { requireSession, apiFetchServer } from "@/lib/api";
@@ -18,6 +19,11 @@ type DashboardData = {
     openedAt: string;
     patient: { fullName: string; medicalNumber: string } | null;
   }[];
+  serverNow: string;
+  shift: { startHour: number; activeDateKey: string; beforeStart: boolean };
+  month: {
+    days: { date: string; dayType: string; surgeryOverlay: boolean; assigned: number }[];
+  };
 };
 
 export default async function DashboardPage() {
@@ -27,12 +33,16 @@ export default async function DashboardPage() {
   const data = await apiFetchServer<DashboardData>("/api/dashboard");
   if (!data) redirect("/login");
 
-  const { dayType, activeShift, people, counters, followUps } = data;
+  const { dayType, activeShift, people, counters, followUps, serverNow, shift, month } = data;
+
+  const today = new Date();
+  const todayKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+  const monthLabel = today.toLocaleDateString("en-GB", { month: "long", year: "numeric" });
 
   return (
     <AppShell>
       <div className="max-w-3xl mx-auto p-4 md:p-8 flex flex-col gap-6">
-        <OnShiftCard dayType={dayType} activeShift={activeShift} people={people} />
+        <OnShiftCard dayType={dayType} activeShift={activeShift} people={people} serverNow={serverNow} shift={shift} />
 
         <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
           <Card className="!p-4">
@@ -52,6 +62,8 @@ export default async function DashboardPage() {
             </Card>
           </Link>
         </div>
+
+        <CalendarCard monthLabel={monthLabel} days={month.days} todayKey={todayKey} />
 
         <Card title="Follow-up queue">
           {followUps.length === 0 ? (

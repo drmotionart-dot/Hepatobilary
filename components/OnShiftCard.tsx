@@ -1,14 +1,25 @@
 type ShiftPerson = { name: string; category: string };
+type ShiftInfo = { startHour: number; activeDateKey: string; beforeStart: boolean };
 import EmptyState from "@/components/ui/EmptyState";
+import ShiftClock from "@/components/dashboard/ShiftClock";
 
 // The signature element described in spec section 8: always visible at the
 // top of the dashboard, no navigation required. The pulsing dot marks a live
 // shift; respects prefers-reduced-motion globally (see app/globals.css).
-// Data comes from GET /api/dashboard (people + activeShift).
+// Data comes from GET /api/dashboard (people + activeShift), which already
+// resolves "on shift now" against the 08:00 shift boundary.
 export default function OnShiftCard({
   dayType = "Normal",
   activeShift = "Long",
-  people = [] as ShiftPerson[]
+  people = [] as ShiftPerson[],
+  serverNow,
+  shift,
+}: {
+  dayType?: string;
+  activeShift?: string;
+  people?: ShiftPerson[];
+  serverNow?: string;
+  shift?: ShiftInfo;
 }) {
   return (
     <div className="rounded-2xl bg-surface p-5 shadow-sm border border-border">
@@ -35,6 +46,7 @@ export default function OnShiftCard({
           ))}
         </ul>
       )}
+      <ShiftClock serverNow={serverNow} shift={shift} />
     </div>
   );
 }

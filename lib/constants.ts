@@ -1,5 +1,14 @@
 import type { CaseType, DayType, LabCategory } from "@/lib/models/types";
 
+// Shift model (spec §6): a 24-hour shift starts and ends at 08:00 local time.
+export const SHIFT_START_HOUR = 8;
+
+// Calendar date key (YYYY-MM-DD) in LOCAL time — matches how roster days are
+// keyed (dates are stored at local midnight and must never be sliced in UTC).
+export function localDateKey(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
 export const CASE_TYPES: { value: CaseType; label: string }[] = [
   { value: "hernia", label: "Hernia" },
   { value: "biliary", label: "Biliary" },
