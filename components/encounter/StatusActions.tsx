@@ -8,17 +8,7 @@ import { Textarea } from "@/components/ui/Textarea";
 import { Label } from "@/components/ui/Label";
 import { apiFetch } from "@/lib/client-api";
 
-type StatusProps = {
-  encounterId: string;
-  encounterType?: string;
-  encounterStatus?: string;
-  patientId?: string;
-  caseType?: string;
-  customCaseTypeLabel?: string | null;
-};
-
-type Mode =
-  | "none"
+export type StatusAction =
   | "admit"
   | "discharge"
   | "follow-up"
@@ -27,6 +17,18 @@ type Mode =
   | "escalate"
   | "open-follow-up";
 
+type StatusProps = {
+  encounterId: string;
+  encounterType?: string;
+  encounterStatus?: string;
+  patientId?: string;
+  caseType?: string;
+  customCaseTypeLabel?: string | null;
+  // Which actions this user may take (spec §7 + 11.7): resident/admin get the
+  // workflow steps, capability holders get discharge/follow-up/close.
+  allowed?: StatusAction[];
+};
+
 export default function StatusActions({
   encounterId,
   encounterType,
@@ -34,9 +36,10 @@ export default function StatusActions({
   patientId,
   caseType = "custom",
   customCaseTypeLabel,
+  allowed,
 }: StatusProps) {
   const router = useRouter();
-  const [mode, setMode] = useState<Mode>("none");
+  const [mode, setMode] = useState<StatusAction | "none">("none");
   const [ward, setWard] = useState("male");
   const [summary, setSummary] = useState("");
   const [followUpInstructions, setFollowUpInstructions] = useState("");
@@ -160,7 +163,7 @@ export default function StatusActions({
   const isFollowUpPending = encounterStatus === "follow-up-pending";
   const isActive = encounterStatus === "active";
 
-  const actions: { key: Mode; label: string }[] = [];
+  const actions: { key: StatusAction; label: string }[] = [];
   if (isActive) {
     if (encounterType !== "ward") actions.push({ key: "admit", label: "Admit to ward" });
     actions.push({ key: "discharge", label: "Discharge" });
@@ -173,10 +176,12 @@ export default function StatusActions({
     actions.push({ key: "close", label: "Close follow-up" });
   }
 
+  const visible = allowed && allowed.length > 0 ? actions.filter((a) => allowed.includes(a.key)) : actions;
+
   return (
     <Card className="print:hidden">
       <div className="flex flex-wrap gap-2">
-        {actions.map((a) => (
+        {visible.map((a) => (
           <Button
             key={a.key}
             variant={mode === a.key ? "primary" : "secondary"}

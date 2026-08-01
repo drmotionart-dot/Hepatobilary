@@ -5,6 +5,7 @@ import Card from "@/components/ui/Card";
 import EmptyState from "@/components/ui/EmptyState";
 import Badge from "@/components/ui/Badge";
 import StatusActions from "@/components/encounter/StatusActions";
+import type { StatusAction } from "@/components/encounter/StatusActions";
 import AddNoteForm from "@/components/encounter/AddNoteForm";
 import AddLabEntryForm from "@/components/encounter/AddLabEntryForm";
 import LabPanel from "@/components/encounter/LabPanel";
@@ -15,10 +16,10 @@ import ReferralReview from "@/components/encounter/ReferralReview";
 import AddTreatmentForm from "@/components/encounter/AddTreatmentForm";
 import AddOperationForm from "@/components/encounter/AddOperationForm";
 import FormRecords from "@/components/encounter/FormRecords";
-import { requireSession, apiFetchServer } from "@/lib/api";
+import { requireSession, getSessionCapabilities, apiFetchServer } from "@/lib/api";
 import { formatDate, formatDateTime } from "@/lib/format";
 import { caseTypeDisplay } from "@/lib/constants";
-import type { Encounter, Patient, ClinicalNote, LabPanel as LabPanelModel, ImagingRequest, ReferralConsult, TreatmentLog, OperationForm, DischargeForm } from "@/lib/models/types";
+import type { Encounter, Patient, ClinicalNote, LabPanel as LabPanelModel, ImagingRequest, ReferralConsult, TreatmentLog, OperationForm, DischargeForm, Capability } from "@/lib/models/types";
 
 type EncounterDetail = {
   encounter: Encounter;
@@ -42,12 +43,30 @@ export default async function EncounterPage({ params }: { params: { id: string }
   const { encounter, patient, notes, labPanel, imaging, referrals, treatmentLog, operation, discharge } = data;
 
   const statusTone = encounter.status === "active" ? "success" : encounter.status === "discharged" ? "info" : "warning";
-  // Discharge, follow-up close, and operation forms are resident-only (spec §7).
-  const canEditOperation = session.role === "resident";
-  const canManageStatus = session.role === "resident";
+
+  // Permission model (spec §7 + 11.7). Admins and residents hold every
+  // capability; an intern only what's granted (read fresh, no re-login).
+  const role = session.role;
+  const caps = await getSessionCapabilities();
+  const hasCap = (cap: Capability) => role === "admin" || role === "resident" || caps.includes(cap);
+
+  // General workflow steps with no capability (admit / escalate / refer out /
+  // open follow-up): resident or admin only.
+  const canGeneralStatus = role === "admin" || role === "resident";
+  // Discharge + follow-up, close, and operation forms map to capabilities.
+  const canDischarge = hasCap("finalize-discharge");
+  const canClose = hasCap("close-follow-up");
+  const canEditOperation = hasCap("complete-operation-form");
   // Clinical documentation (notes, labs, imaging requests, referrals, treatment
   // log, generic forms) is intern/resident/admin (spec §7, amended).
   const canDocument = true;
+
+  const statusActionsAllowed: StatusAction[] = [
+    ...(canGeneralStatus ? (["admit", "escalate", "refer-out", "open-follow-up"] as StatusAction[]) : []),
+    ...(canDischarge ? (["discharge", "follow-up"] as StatusAction[]) : []),
+    ...(canClose ? (["close"] as StatusAction[]) : []),
+  ];
+  const canManageStatus = statusActionsAllowed.length > 0;
 
   return (
     <AppShell>
@@ -66,6 +85,7 @@ export default async function EncounterPage({ params }: { params: { id: string }
             patientId={encounter.patientId?.toString()}
             caseType={encounter.caseType}
             customCaseTypeLabel={encounter.customCaseTypeLabel}
+            allowed={statusActionsAllowed}
           />
         )}
 

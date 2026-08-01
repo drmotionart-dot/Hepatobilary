@@ -10,11 +10,8 @@ import { useRouter } from "next/navigation";
 import Button from "@/components/ui/Button";
 import { Label } from "@/components/ui/Label";
 import { apiFetch } from "@/lib/client-api";
+import { CAPABILITY_OPTIONS } from "@/lib/models/types";
 import type { Capability } from "@/lib/models/types";
-
-const CAPABILITY_OPTIONS: { value: Capability; label: string; hint: string }[] = [
-  { value: "generate-shift-key", label: "Generate shift key", hint: "May create a new ward shift key (spec 11.6/11.7)" },
-];
 
 export default function CreateAccountModal({ onClose }: { onClose: () => void }) {
   const router = useRouter();
@@ -30,6 +27,12 @@ export default function CreateAccountModal({ onClose }: { onClose: () => void })
 
   function toggleCap(cap: Capability) {
     setCaps((prev) => (prev.includes(cap) ? prev.filter((c) => c !== cap) : [...prev, cap]));
+  }
+
+  const allSelected = CAPABILITY_OPTIONS.every((c) => caps.includes(c.key));
+
+  function toggleAllCaps() {
+    setCaps(allSelected ? [] : CAPABILITY_OPTIONS.map((c) => c.key));
   }
 
   async function submit(e: React.FormEvent) {
@@ -64,7 +67,7 @@ export default function CreateAccountModal({ onClose }: { onClose: () => void })
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/40 p-4" role="dialog" aria-modal="true">
-      <div className="w-full max-w-md rounded-2xl border border-border bg-surface p-6 shadow-lg">
+      <div className="w-full max-w-md rounded-2xl border border-border bg-surface p-6 shadow-lg max-h-[calc(100vh-2rem)] overflow-y-auto">
         {created ? (
           <>
             <h3 className="text-base font-semibold">Account created</h3>
@@ -137,18 +140,25 @@ export default function CreateAccountModal({ onClose }: { onClose: () => void })
             {role === "intern" && (
               <div>
                 <Label>Capabilities</Label>
+                <div className="mt-1 flex items-center gap-2 text-sm">
+                  <label className="flex items-center gap-2">
+                    <input type="checkbox" checked={allSelected} onChange={toggleAllCaps} />
+                    <span className="font-medium">{allSelected ? "Clear all" : "Select all"}</span>
+                  </label>
+                  <span className="text-xs text-muted">({caps.length}/{CAPABILITY_OPTIONS.length} granted)</span>
+                </div>
                 <div className="mt-1 flex flex-col gap-2">
                   {CAPABILITY_OPTIONS.map((c) => (
-                    <label key={c.value} className="flex items-start gap-2 rounded-lg border border-border p-2.5 text-sm">
+                    <label key={c.key} className={`flex items-start gap-2 rounded-lg border p-2.5 text-sm ${caps.includes(c.key) ? "border-primary/40 bg-primary/5" : "border-border"}`}>
                       <input
                         type="checkbox"
-                        checked={caps.includes(c.value)}
-                        onChange={() => toggleCap(c.value)}
+                        checked={caps.includes(c.key)}
+                        onChange={() => toggleCap(c.key)}
                         className="mt-0.5"
                       />
                       <span>
                         <span className="font-medium">{c.label}</span>
-                        <span className="block text-xs text-muted">{c.hint}</span>
+                        <span className="block text-xs text-muted">{c.description}</span>
                       </span>
                     </label>
                   ))}

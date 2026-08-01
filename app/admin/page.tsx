@@ -6,8 +6,9 @@ import { redirect } from "next/navigation";
 import { requireRole } from "@/lib/api";
 
 // Role-aware Admin hub (spec §7): residents get the shared management tools
-// (users/approvals, audit log, lab review queue); admins get the full set
-// including templates, form definitions and lab mappings.
+// (users/approvals + audit log); admins get the full set including templates,
+// form definitions and lab mappings. The lab review queue lives under Lab
+// imports (app/lab-import) — not duplicated here.
 
 const ALL_LINKS = [
   { href: "/admin/users", title: "Users & approvals", desc: "Approve self-registrations, create accounts, manage capabilities & lifecycle" },
@@ -15,7 +16,6 @@ const ALL_LINKS = [
   { href: "/admin/forms", title: "Form templates", desc: "Custom departmental form definitions" },
   { href: "/lab-import/mappings", title: "Lab test mappings", desc: "PDF test names → internal lab panel keys" },
   { href: "/admin/audit", title: "Audit log", desc: "Every write across the system, who and when" },
-  { href: "/admin/lab-review", title: "Lab review queue", desc: "Imports waiting for a patient match" },
 ];
 
 export default async function AdminPage() {
@@ -23,7 +23,7 @@ export default async function AdminPage() {
   if (!session) redirect("/dashboard");
 
   const isAdmin = session.role === "admin";
-  const links = isAdmin ? ALL_LINKS : ALL_LINKS.filter((l) => ["/admin/users", "/admin/audit", "/admin/lab-review"].includes(l.href));
+  const links = isAdmin ? ALL_LINKS : ALL_LINKS.filter((l) => ["/admin/users", "/admin/audit"].includes(l.href));
 
   return (
     <AppShell>

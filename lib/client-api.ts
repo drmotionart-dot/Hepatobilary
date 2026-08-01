@@ -40,11 +40,55 @@ export function getToken(): string | null {
 export function setToken(token: string) {
   if (typeof window === "undefined") return;
   document.cookie = `${TOKEN_COOKIE}=${encodeURIComponent(token)}; path=/; max-age=28800; SameSite=Lax`;
+  invalidateCapabilitiesCache();
 }
 
 export function clearToken() {
   if (typeof window === "undefined") return;
   document.cookie = `${TOKEN_COOKIE}=; path=/; max-age=0; SameSite=Lax`;
+  invalidateCapabilitiesCache();
+}
+
+// Intern capability cache (spec 11.7): capabilities are NOT in the JWT, so the
+// client reads them fresh from /api/auth/me once and caches the result. The
+// backend re-checks every request and remains the authority; this cache only
+// decides whether an intern skips the shift-key prompt. Invalidated on
+// login/logout and after a capability save so grants take effect immediately.
+let capabilitiesCache: string[] | null = null;
+let capabilitiesFetchedAt = 0;
+let capabilitiesFetch: Promise<string[]> | null = null;
+const CAPABILITIES_TTL_MS = 60_000;
+
+export function invalidateCapabilitiesCache(): void {
+  capabilitiesCache = null;
+  capabilitiesFetchedAt = 0;
+  capabilitiesFetch = null;
+}
+
+async function resolveCapabilities(): Promise<string[]> {
+  if (capabilitiesCache && Date.now() - capabilitiesFetchedAt < CAPABILITIES_TTL_MS) return capabilitiesCache;
+  if (capabilitiesFetch) return capabilitiesFetch;
+  capabilitiesFetch = (async () => {
+    const token = getToken();
+    if (!token) {
+      capabilitiesCache = [];
+      capabilitiesFetchedAt = Date.now();
+      return capabilitiesCache;
+    }
+    try {
+      const res = await fetch(`${API_BASE}/api/auth/me`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      const caps = data?.user?.grantedCapabilities;
+      capabilitiesCache = Array.isArray(caps) ? caps.filter((c: unknown): c is string => typeof c === "string") : [];
+    } catch {
+      capabilitiesCache = [];
+    }
+    capabilitiesFetchedAt = Date.now();
+    return capabilitiesCache;
+  })();
+  return capabilitiesFetch;
 }
 
 function queuedResponse(id: string): Response {
@@ -99,7 +143,14 @@ export async function apiFetch(path: string, options: RequestInit = {}): Promise
   if (token) headers.set("Authorization", `Bearer ${token}`);
   const method = (options.method || "GET").toUpperCase();
   const role = typeof window !== "undefined" ? getRole() : null;
-  const gated = role === "intern" && MUTATION_METHODS.has(method) && isGatedRequest(method, path);
+  let gated = role === "intern" && MUTATION_METHODS.has(method) && isGatedRequest(method, path);
+
+  // Interns holding bypass-shift-key (spec 11.7) skip the gate entirely — no
+  // prompt, no key attached. The backend re-validates the grant on each write.
+  if (gated) {
+    const caps = await resolveCapabilities();
+    if (caps.includes("bypass-shift-key")) gated = false;
+  }
 
   // Intern gated write: obtain a key (cached or prompted) before sending.
   let shiftKey: string | null = null;

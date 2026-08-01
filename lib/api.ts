@@ -70,3 +70,13 @@ export async function apiFetchServer<T>(path: string): Promise<T | null> {
   if (!res.ok) throw new Error(`API ${path} failed with status ${res.status}`);
   return (await res.json()) as T;
 }
+
+// The session user's grantedCapabilities, read fresh from the backend (spec
+// 11.7). Capabilities are NOT in the JWT — grants are DB-fresh so they take
+// effect without re-login. Admins/residents implicitly hold every capability;
+// only interns rely on the returned grants.
+export async function getSessionCapabilities(): Promise<string[]> {
+  const data = await apiFetchServer<{ user?: { grantedCapabilities?: unknown } }>("/api/auth/me");
+  const caps = data?.user?.grantedCapabilities;
+  return Array.isArray(caps) ? caps.filter((c): c is string => typeof c === "string") : [];
+}

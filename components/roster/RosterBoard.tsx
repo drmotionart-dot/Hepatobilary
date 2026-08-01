@@ -21,7 +21,7 @@ function dateKey(d: Date) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
-export default function RosterBoard({ users, slots, assignments, calendar, pools, selfBook = false, currentUserId = "", initialDay = "" }: {
+export default function RosterBoard({ users, slots, assignments, calendar, pools, selfBook = false, currentUserId = "", initialDay = "", canManage = false, canSetDayType = false }: {
   users: User[];
   slots: Slot[];
   assignments: Assignment[];
@@ -30,6 +30,8 @@ export default function RosterBoard({ users, slots, assignments, calendar, pools
   selfBook?: boolean;
   currentUserId?: string;
   initialDay?: string;
+  canManage?: boolean;
+  canSetDayType?: boolean;
 }) {
   const router = useRouter();
   // The selected day lives in the ?day= query param so router.refresh() (which
@@ -173,7 +175,7 @@ export default function RosterBoard({ users, slots, assignments, calendar, pools
         </p>
       )}
 
-      {!selfBook && (
+      {canManage && (
       <Card title="Bulk generate slots">
         <form onSubmit={bulkGenerate} className="flex flex-wrap items-end gap-3">
           <div>
@@ -215,7 +217,7 @@ export default function RosterBoard({ users, slots, assignments, calendar, pools
       </div>
 
       <Card title={`${selected} — ${dayType} day`}>
-        {!selfBook && (
+        {canSetDayType && (
         <div className="flex flex-wrap gap-2 mb-4">
           {DAY_TYPES.map((dt) => (
             <button
@@ -288,7 +290,7 @@ export default function RosterBoard({ users, slots, assignments, calendar, pools
                               className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-medium ${isMe ? "bg-success/15 text-success" : "bg-primary/10 text-primary"}`}
                             >
                               {u?.fullName || "Unknown"}{isMe ? " (you)" : ""}
-                              {!selfBook && (
+                              {canManage && (
                                 <button
                                   type="button"
                                   aria-label={`Remove ${u?.fullName || "user"}`}
@@ -313,7 +315,7 @@ export default function RosterBoard({ users, slots, assignments, calendar, pools
                           {assigned.includes(currentUserId) ? "Relinquish" : "Claim"}
                         </Button>
                       )
-                    ) : (
+                    ) : canManage ? (
                       <>
                         {candidatesFor(s).length > 0 && (
                           <Select
@@ -331,7 +333,7 @@ export default function RosterBoard({ users, slots, assignments, calendar, pools
                           <span className="text-xs text-muted">No candidates</span>
                         )}
                       </>
-                    )}
+                    ) : null}
                   </div>
                 </li>
               );

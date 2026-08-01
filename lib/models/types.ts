@@ -16,7 +16,24 @@ export type AccountStatus = "pending-approval" | "active" | "expired" | "removed
 
 // Granular capability grants (spec 11.7/11.8). Kept in sync with the backend's
 // CAPABILITIES constant. Extensible — add new capability keys here + backend.
-export type Capability = "generate-shift-key";
+export type Capability =
+  | "generate-shift-key"
+  | "finalize-discharge"
+  | "close-follow-up"
+  | "complete-operation-form"
+  | "manage-roster"
+  | "set-day-type-calendar"
+  | "bypass-shift-key";
+
+export const CAPABILITY_OPTIONS: { key: Capability; label: string; description: string }[] = [
+  { key: "generate-shift-key", label: "Generate shift key", description: "Create a new ward shift key, retiring the previous one." },
+  { key: "finalize-discharge", label: "Finalize discharge", description: "Discharge patients and mark cases for follow-up." },
+  { key: "close-follow-up", label: "Close follow-ups", description: "Close cases and follow-up visits after review." },
+  { key: "complete-operation-form", label: "Complete operation forms", description: "Create and edit operation records." },
+  { key: "manage-roster", label: "Manage roster", description: "Import the rotation roster and assign shifts." },
+  { key: "set-day-type-calendar", label: "Set day-type calendar", description: "Mark days as normal, clinic, or emergency." },
+  { key: "bypass-shift-key", label: "Bypass shift key", description: "Write patient data without entering the ward shift key." },
+];
 
 export interface User {
   _id?: ObjectId;
