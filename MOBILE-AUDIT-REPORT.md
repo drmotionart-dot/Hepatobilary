@@ -64,6 +64,18 @@ Spec §7 matrix says "manage users" is admin-only, but §10.1/§10.2/§11.5 gran
 residents registration approval and rotation import. Code consistently follows
 §10.x; flagged in Phase-5 report.
 
+## Follow-up (2026-08-01, product decision)
+Admin was granted **full clinical write**: opening new cases (clinic/emergency/
+ward), importing lab PDFs, and documenting on `/ward/[id]` (notes, labs,
+imaging, referrals, treatment, generic forms). Backend gates on
+`encounters`, `patients`, `lab-import`, `clinical-notes`, `lab-panels`,
+`treatment-logs`, `referral-consults`, `imaging-requests`, `form-records`
+were widened to include `admin`; the frontend now renders the write forms for
+admin in all three sections and the lab uploader. Admins remain **never**
+shift-key gated (intern-only). Finalize discharge / close follow-ups /
+complete operation forms stay resident-only per §7. Spec §7 matrix amended
+to match.
+
 ## Class 3 — Navigation completeness
 
 ### Found → Fixed

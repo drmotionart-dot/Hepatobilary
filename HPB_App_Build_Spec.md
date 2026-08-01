@@ -415,8 +415,8 @@ Rather than filling shifts day by day as they approach, the roster should be pla
 
 | Action | Intern | Resident | Admin |
 |---|---|---|---|
-| Create/edit clinical notes, vitals, labs | ✅ | ✅ | — |
-| Fill forms (GSR, imaging requests, referrals) | ✅ | ✅ | — |
+| Create/edit clinical notes, vitals, labs | ✅ | ✅ | ✅ |
+| Fill forms (GSR, imaging requests, referrals) | ✅ | ✅ | ✅ |
 | Finalize discharge | ❌ | ✅ | — |
 | Approve/close follow-ups | ❌ | ✅ | — |
 | Complete/edit operation form | ❌ | ✅ | — |
@@ -426,7 +426,7 @@ Rather than filling shifts day by day as they approach, the roster should be pla
 | Fill/edit shift roster (`ShiftAssignment`) | ❌ | ✅ | ✅ |
 | View audit log | ❌ | ✅ | ✅ |
 
-Residents have full admin-equivalent rights over the calendar and roster specifically (this is the part of the system they run day to day) — everything else stays admin-only. Since residents now hold that power directly, the audit log below is the accountability mechanism: every change is attributed and visible, not just trusted.
+Residents have full admin-equivalent rights over the calendar and roster specifically (this is the part of the system they run day to day) — everything else stays admin-only. Since residents now hold that power directly, the audit log below is the accountability mechanism: every change is attributed and visible, not just trusted. Admins additionally hold full clinical write rights (open cases, document patients) as a management/backstop capability — they are never shift-key gated, and only interns are prompted for the ward key.
 
 ### 7.1 `AuditLog`
 ```

@@ -25,7 +25,7 @@ export default async function ClinicPage() {
         <PageHeader title="Clinic" subtitle="New cases and follow-up queue" />
 
         <div className="flex flex-col gap-5">
-          {session.role !== "admin" && <NewCaseForm />}
+          <NewCaseForm />
 
           <Card title={`Active cases (${activeCases.length})`}>
             {activeCases.length === 0 ? (

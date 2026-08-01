@@ -132,13 +132,11 @@ export default async function WardPage() {
           title="Ward"
           subtitle="Day-by-day board — active inpatients by side"
           action={
-            session.role !== "admin" ? (
-              <div className="print:hidden">
-                <Link href="/clinic">
-                  <Button size="sm">+ Open new case (clinic)</Button>
-                </Link>
-              </div>
-            ) : undefined
+            <div className="print:hidden">
+              <Link href="/clinic">
+                <Button size="sm">+ Open new case (clinic)</Button>
+              </Link>
+            </div>
           }
         />
 

@@ -25,7 +25,7 @@ export default async function EmergencyPage() {
         <PageHeader title="Emergency" subtitle="New assessments and last 24h" />
 
         <div className="flex flex-col gap-5">
-          {session.role !== "admin" && <EmergencyAssessmentForm />}
+          <EmergencyAssessmentForm />
 
           <Card title={`Last 24h (${encounters.length})`}>
             {encounters.length === 0 ? (

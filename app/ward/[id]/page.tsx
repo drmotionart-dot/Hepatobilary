@@ -46,8 +46,8 @@ export default async function EncounterPage({ params }: { params: { id: string }
   const canEditOperation = session.role === "resident";
   const canManageStatus = session.role === "resident";
   // Clinical documentation (notes, labs, imaging requests, referrals, treatment
-  // log, generic forms) is intern+resident per the §7 matrix — admin reads only.
-  const canDocument = session.role === "intern" || session.role === "resident";
+  // log, generic forms) is intern/resident/admin (spec §7, amended).
+  const canDocument = true;
 
   return (
     <AppShell>

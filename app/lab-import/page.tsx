@@ -37,7 +37,7 @@ export default async function LabImportPage() {
         />
 
         <div className="flex flex-col gap-5">
-          {session.role !== "admin" && <LabImportUploader />}
+          <LabImportUploader />
 
           <Card title="Recent imports">
             {recent.length === 0 ? (
