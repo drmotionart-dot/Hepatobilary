@@ -76,7 +76,7 @@ export default function AuditLogFilters({ initial }: { initial: Filters }) {
         <Select value={user} onChange={(e) => setUser(e.target.value)}>
           <option value="">All</option>
           {options.users.map((u) => (
-            <option key={u._id} value={u._id}>{u.fullName}</option>
+            <option key={u._id} value={u._id} dir="auto">{u.fullName}</option>
           ))}
         </Select>
       </div>

@@ -1,6 +1,7 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import Script from "next/script";
 import OfflineQueueBanner from "@/components/OfflineQueueBanner";
+import RegisterSW from "@/components/RegisterSW";
 // Self-hosted IBM Plex family (fontsource) so builds don't depend on Google
 // Fonts at build time. Same families as before: sans + arabic + mono.
 import "@fontsource/ibm-plex-sans/400.css";
@@ -17,17 +18,30 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "HPB Department",
-  description: "Hepatobiliary Surgery Department — documentation, ward, clinic, emergency, and roster"
+  description: "Hepatobiliary Surgery Department — documentation, ward, clinic, emergency, and roster",
+  manifest: "/manifest.webmanifest",
+  icons: {
+    icon: "/icon.svg",
+    apple: "/icons/apple-touch-icon.png",
+  },
+  appleWebApp: { capable: true, statusBarStyle: "default", title: "HPB" },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#0E5C56",
+  width: "device-width",
+  initialScale: 1,
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body className="font-sans">
         <Script id="theme-init" strategy="beforeInteractive">
           {`try{var t=localStorage.getItem("hpb-theme");if(t==="dark"||(!t&&window.matchMedia("(prefers-color-scheme: dark)").matches)){document.documentElement.classList.add("dark")}}catch(e){}`}
         </Script>
         <OfflineQueueBanner />
+        <RegisterSW />
         {children}
       </body>
     </html>

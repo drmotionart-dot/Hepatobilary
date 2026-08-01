@@ -62,6 +62,12 @@ export default async function AppShell({ children }: { children: React.ReactNode
                 >
                   Audit log
                 </Link>
+                <Link
+                  href="/admin/users"
+                  className="rounded-lg px-3 py-2 text-sm font-medium text-ink/60 hover:bg-primary/10 hover:text-primary transition-colors"
+                >
+                  Users & approvals
+                </Link>
               </>
             )}
 

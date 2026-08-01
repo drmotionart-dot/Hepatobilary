@@ -141,7 +141,7 @@ export default function AddOperationForm({
           <Select value={anesthetist} onChange={(e) => setAnesthetist(e.target.value)}>
             <option value="">—</option>
             {users.map((u) => (
-              <option key={u._id} value={u.fullName}>{u.fullName}</option>
+              <option key={u._id} value={u.fullName} dir="auto">{u.fullName}</option>
             ))}
           </Select>
         </div>
@@ -161,7 +161,7 @@ export default function AddOperationForm({
                   onChange={() => toggleAssistant(u._id)}
                   className="accent-[color:var(--primary)]"
                 />
-                {u.fullName}
+                <span dir="auto">{u.fullName}</span>
               </label>
             ))}
           </div>

@@ -272,7 +272,7 @@ export default function RosterImportCard() {
                         >
                           <option value="">Match to…</option>
                           {review.users.map((u) => (
-                            <option key={u._id} value={u._id}>{u.fullName} ({u.role})</option>
+                            <option key={u._id} value={u._id} dir="auto">{u.fullName} ({u.role})</option>
                           ))}
                         </select>
                         <Button type="button" variant="secondary" size="sm" onClick={() => resolveRow(imp._id, row.rowIndex, undefined, true)}>

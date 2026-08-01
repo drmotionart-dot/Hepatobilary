@@ -50,7 +50,7 @@ export default async function AdminAuditPage({ searchParams }: { searchParams: R
                   {logs.map((l) => (
                     <tr key={l._id!.toString()} className="border-b border-border">
                       <td className="py-2 pr-3 whitespace-nowrap text-xs text-ink/60">{formatDateTime(l.performedAt)}</td>
-                      <td className="py-2 pr-3">{l.performedByName || "Unknown"}</td>
+                      <td className="py-2 pr-3" dir="auto">{l.performedByName || "Unknown"}</td>
                       <td className="py-2 pr-3 font-mono text-xs">{l.collection}</td>
                       <td className="py-2 pr-3">
                         <span className={`text-xs font-medium ${l.action === "create" ? "text-success" : l.action === "delete" ? "text-danger" : "text-warning"}`}>

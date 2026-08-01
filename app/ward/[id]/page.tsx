@@ -185,7 +185,7 @@ export default async function EncounterPage({ params }: { params: { id: string }
                   <dt className="text-xs text-ink/50">Date</dt>
                   <dd>{operation.date ? formatDate(operation.date) : ""}</dd>
                   <dt className="text-xs text-ink/50">Surgeon</dt>
-                  <dd>{operation.surgeonName || "Unknown"}</dd>
+                  <dd dir="auto">{operation.surgeonName || "Unknown"}</dd>
                   <dt className="text-xs text-ink/50">Assistants</dt>
                   <dd>{(operation.assistantNames || []).join(", ") || "—"}</dd>
                   <dt className="text-xs text-ink/50">Pre-op diagnosis</dt>

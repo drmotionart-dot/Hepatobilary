@@ -14,7 +14,7 @@ type RosterBoardData = {
   pools: { _id: string; date: string; shiftType: "long" | "night"; userIds: string[] }[];
 };
 
-export default async function RosterPage() {
+export default async function RosterPage({ searchParams }: { searchParams: { day?: string } }) {
   const session = await requireSession();
   if (!session) redirect("/login");
 
@@ -22,6 +22,7 @@ export default async function RosterPage() {
   if (!data) redirect("/login");
 
   const canEdit = session.role === "resident" || session.role === "admin";
+  const day = searchParams.day && /^\d{4}-\d{2}-\d{2}$/.test(searchParams.day) ? searchParams.day : "";
 
   return (
     <AppShell>
@@ -34,6 +35,9 @@ export default async function RosterPage() {
           assignments={data.assignments}
           calendar={data.calendar}
           pools={data.pools}
+          selfBook={session.role === "intern"}
+          currentUserId={session.id}
+          initialDay={day}
         />
       </div>
     </AppShell>

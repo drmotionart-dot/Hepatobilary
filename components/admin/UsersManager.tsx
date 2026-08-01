@@ -8,7 +8,15 @@ import Badge from "@/components/ui/Badge";
 import { formatDate } from "@/lib/format";
 import { apiFetch } from "@/lib/client-api";
 
-export default function UsersManager({ users, pending }: { users: any[]; pending: any[] }) {
+export default function UsersManager({
+  users,
+  pending,
+  canImport = false,
+}: {
+  users: any[];
+  pending: any[];
+  canImport?: boolean;
+}) {
   const router = useRouter();
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
@@ -76,7 +84,8 @@ export default function UsersManager({ users, pending }: { users: any[]; pending
 
   return (
     <div className="flex flex-col gap-5">
-      {/* Rotation import */}
+      {/* Rotation import (admin only) */}
+      {canImport && (
       <Card title="Import rotation (Excel)">
         <form onSubmit={importRotation} className="flex flex-wrap items-end gap-3">
           <div className="flex-1 min-w-40">
@@ -113,6 +122,7 @@ export default function UsersManager({ users, pending }: { users: any[]; pending
           </div>
         )}
       </Card>
+      )}
 
       {/* Pending approvals */}
       {pending.length > 0 && (
@@ -121,7 +131,7 @@ export default function UsersManager({ users, pending }: { users: any[]; pending
             {pending.map((u) => (
               <li key={u._id} className="py-2.5 flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium">{u.fullName}</p>
+                  <p className="text-sm font-medium" dir="auto">{u.fullName}</p>
                   <p className="text-xs text-ink/50">{u.email} · {u.role} · requested {formatDate(u.createdAt)}</p>
                 </div>
                 <Button size="sm" onClick={() => act(u._id, "approve")}>Approve</Button>
@@ -140,7 +150,7 @@ export default function UsersManager({ users, pending }: { users: any[]; pending
             {users.map((u) => (
               <li key={u._id} className="py-2.5 flex items-center justify-between gap-2">
                 <div className="min-w-0">
-                  <p className="text-sm font-medium">{u.fullName}</p>
+                  <p className="text-sm font-medium" dir="auto">{u.fullName}</p>
                   <p className="text-xs text-ink/50 truncate">
                     {u.loginId || u.email} · {u.role} · {u.accountType}
                     {u.phone ? ` · ${u.phone}` : ""}

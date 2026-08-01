@@ -29,7 +29,7 @@ export default function OnShiftCard({
         <ul className="flex flex-col gap-1.5">
           {people.map((p) => (
             <li key={p.name} className="flex items-center justify-between text-sm">
-              <span className="font-medium">{p.name}</span>
+              <span className="font-medium" dir="auto">{p.name}</span>
               <span className="text-ink/50">{p.category}</span>
             </li>
           ))}

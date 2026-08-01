@@ -21,15 +21,26 @@ function dateKey(d: Date) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
-export default function RosterBoard({ users, slots, assignments, calendar, pools }: {
+export default function RosterBoard({ users, slots, assignments, calendar, pools, selfBook = false, currentUserId = "", initialDay = "" }: {
   users: User[];
   slots: Slot[];
   assignments: Assignment[];
   calendar: CalendarDay[];
   pools: Pool[];
+  selfBook?: boolean;
+  currentUserId?: string;
+  initialDay?: string;
 }) {
   const router = useRouter();
-  const [selected, setSelected] = useState<string>(dateKey(new Date()));
+  // The selected day lives in the ?day= query param so router.refresh() (which
+  // remounts this component) doesn't bounce the board back to today after a
+  // toggle or self-booking. Server and client both read the same URL, so there
+  // is no hydration mismatch.
+  const [selected, setSelected] = useState<string>(() => (initialDay || dateKey(new Date())));
+  const selectDay = (key: string) => {
+    setSelected(key);
+    router.replace(`/roster?day=${key}`, { scroll: false });
+  };
   const [bulkFrom, setBulkFrom] = useState(dateKey(new Date()));
   const [bulkTo, setBulkTo] = useState("");
   const [message, setMessage] = useState("");
@@ -71,7 +82,10 @@ export default function RosterBoard({ users, slots, assignments, calendar, pools
   const assignmentMap = useMemo(() => {
     const m = new Map<string, Assignment>();
     for (const a of assignments) {
-      const key = `${a.date.slice(0, 10)}:${a.roleSlotDefinitionId}`;
+      // Key by the LOCAL calendar date (same as dateKey/selected). Dates are
+      // stored at local midnight and serialize to the previous day in UTC, so
+      // slicing the raw ISO string would shift every assignment a day early.
+      const key = `${dateKey(new Date(a.date))}:${a.roleSlotDefinitionId}`;
       m.set(key, a);
     }
     return m;
@@ -110,6 +124,21 @@ export default function RosterBoard({ users, slots, assignments, calendar, pools
     router.refresh();
   }
 
+  async function claimSlot(slotId: string) {
+    setError("");
+    const res = await apiFetch("/api/shift/self-book", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ date: selected, roleSlotDefinitionId: slotId }),
+    });
+    if (!res.ok) {
+      const d = await res.json();
+      setError(d.error || "Could not update booking");
+      return;
+    }
+    router.refresh();
+  }
+
   async function bulkGenerate(e: React.FormEvent) {
     e.preventDefault();
     setError("");
@@ -138,6 +167,13 @@ export default function RosterBoard({ users, slots, assignments, calendar, pools
 
   return (
     <div className="flex flex-col gap-5">
+      {selfBook && (
+        <p className="rounded-lg bg-primary/5 border border-primary/20 px-3 py-2 text-xs text-primary">
+          Self-booking mode: claim any open intern shift within the next 8 weeks. You can be on at most one shift per day.
+        </p>
+      )}
+
+      {!selfBook && (
       <Card title="Bulk generate slots">
         <form onSubmit={bulkGenerate} className="flex flex-wrap items-end gap-3">
           <div>
@@ -154,6 +190,7 @@ export default function RosterBoard({ users, slots, assignments, calendar, pools
           Creates empty slots from the day-type calendar. Fill them here, or upload the rotation roster Excel above.
         </p>
       </Card>
+      )}
 
       {message && <p className="text-xs text-success">{message}</p>}
       {error && <p className="text-xs text-danger">{error}</p>}
@@ -163,7 +200,7 @@ export default function RosterBoard({ users, slots, assignments, calendar, pools
         {days.map((d) => (
           <button
             key={d.key}
-            onClick={() => setSelected(d.key)}
+            onClick={() => selectDay(d.key)}
             className={`rounded-lg border p-1.5 text-center text-xs ${selected === d.key ? "border-primary bg-primary/10" : "border-border"}`}
           >
             <span className="block font-medium">{d.date.toLocaleDateString("en-GB", { weekday: "short" })}</span>
@@ -176,6 +213,7 @@ export default function RosterBoard({ users, slots, assignments, calendar, pools
       </div>
 
       <Card title={`${selected} — ${dayType} day`}>
+        {!selfBook && (
         <div className="flex flex-wrap gap-2 mb-4">
           {DAY_TYPES.map((dt) => (
             <button
@@ -193,6 +231,7 @@ export default function RosterBoard({ users, slots, assignments, calendar, pools
             Surgery overlay: {selectedDay?.cal?.surgeryOverlay ? "ON" : "off"}
           </button>
         </div>
+        )}
 
         {dayType === "emergency" && (
           <div className="mb-4 rounded-lg bg-primary/5 border border-primary/20 p-3">
@@ -240,36 +279,56 @@ export default function RosterBoard({ users, slots, assignments, calendar, pools
                       <div className="flex flex-wrap justify-end gap-1.5">
                         {assigned.map((id) => {
                           const u = userById.get(id);
+                          const isMe = id === currentUserId;
                           return (
-                            <span key={id} className="inline-flex items-center gap-1 rounded-md bg-primary/10 text-primary px-2 py-0.5 text-xs font-medium">
-                              {u?.fullName || "Unknown"}
-                              <button
-                                type="button"
-                                aria-label={`Remove ${u?.fullName || "user"}`}
-                                onClick={() => toggleUser(s._id, id)}
-                                className="text-primary/60 hover:text-danger"
-                              >
-                                ×
-                              </button>
+                            <span
+                              key={id}
+                              className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-medium ${isMe ? "bg-success/15 text-success" : "bg-primary/10 text-primary"}`}
+                            >
+                              {u?.fullName || "Unknown"}{isMe ? " (you)" : ""}
+                              {!selfBook && (
+                                <button
+                                  type="button"
+                                  aria-label={`Remove ${u?.fullName || "user"}`}
+                                  onClick={() => toggleUser(s._id, id)}
+                                  className="text-primary/60 hover:text-danger"
+                                >
+                                  ×
+                                </button>
+                              )}
                             </span>
                           );
                         })}
                       </div>
                     )}
-                    {candidatesFor(s).length > 0 && (
-                      <Select
-                        className="w-44"
-                        value=""
-                        onChange={(e) => e.target.value && toggleUser(s._id, e.target.value)}
-                      >
-                        <option value="">{assigned.length > 0 ? "+ Add person" : "— assign —"}</option>
-                        {candidatesFor(s).map((u) => (
-                          <option key={u._id} value={u._id}>{u.fullName} ({u.role})</option>
-                        ))}
-                      </Select>
-                    )}
-                    {assigned.length === 0 && candidatesFor(s).length === 0 && (
-                      <span className="text-xs text-ink/40">No candidates</span>
+                    {selfBook ? (
+                      s.personType === "intern" && (
+                        <Button
+                          size="sm"
+                          variant={assigned.includes(currentUserId) ? "secondary" : undefined}
+                          onClick={() => claimSlot(s._id)}
+                        >
+                          {assigned.includes(currentUserId) ? "Relinquish" : "Claim"}
+                        </Button>
+                      )
+                    ) : (
+                      <>
+                        {candidatesFor(s).length > 0 && (
+                          <Select
+                            className="w-44"
+                            value=""
+                            onChange={(e) => e.target.value && toggleUser(s._id, e.target.value)}
+                          >
+                            <option value="">{assigned.length > 0 ? "+ Add person" : "— assign —"}</option>
+                            {candidatesFor(s).map((u) => (
+                              <option key={u._id} value={u._id} dir="auto">{u.fullName} ({u.role})</option>
+                            ))}
+                          </Select>
+                        )}
+                        {assigned.length === 0 && candidatesFor(s).length === 0 && (
+                          <span className="text-xs text-ink/40">No candidates</span>
+                        )}
+                      </>
                     )}
                   </div>
                 </li>
