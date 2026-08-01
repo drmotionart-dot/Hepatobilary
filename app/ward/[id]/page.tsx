@@ -2,6 +2,7 @@ import { notFound, redirect } from "next/navigation";
 import AppShell from "@/components/AppShell";
 import PageHeader from "@/components/ui/PageHeader";
 import Card from "@/components/ui/Card";
+import EmptyState from "@/components/ui/EmptyState";
 import Badge from "@/components/ui/Badge";
 import StatusActions from "@/components/encounter/StatusActions";
 import AddNoteForm from "@/components/encounter/AddNoteForm";
@@ -12,6 +13,7 @@ import AddReferralForm from "@/components/encounter/AddReferralForm";
 import ReferralReview from "@/components/encounter/ReferralReview";
 import AddTreatmentForm from "@/components/encounter/AddTreatmentForm";
 import AddOperationForm from "@/components/encounter/AddOperationForm";
+import FormRecords from "@/components/encounter/FormRecords";
 import { requireSession, apiFetchServer } from "@/lib/api";
 import { formatDate, formatDateTime } from "@/lib/format";
 import { caseTypeDisplay } from "@/lib/constants";
@@ -39,7 +41,9 @@ export default async function EncounterPage({ params }: { params: { id: string }
   const { encounter, patient, notes, labPanel, imaging, referrals, treatmentLog, operation, discharge } = data;
 
   const statusTone = encounter.status === "active" ? "success" : encounter.status === "discharged" ? "info" : "warning";
-  const canEditOperation = session.role === "resident" || session.role === "admin";
+  // Discharge, follow-up close, and operation forms are resident-only (spec §7).
+  const canEditOperation = session.role === "resident";
+  const canManageStatus = session.role === "resident";
 
   return (
     <AppShell>
@@ -50,13 +54,13 @@ export default async function EncounterPage({ params }: { params: { id: string }
           action={<Badge tone={statusTone as any}>{encounter.status}</Badge>}
         />
 
-        {encounter.status === "active" && <StatusActions encounterId={encounter._id!.toString()} encounterType={encounter.type} />}
+        {encounter.status === "active" && canManageStatus && <StatusActions encounterId={encounter._id!.toString()} encounterType={encounter.type} />}
 
         <div className="flex flex-col gap-5 mt-5">
           {/* Clinical notes */}
           <Card title="Clinical notes">
             {notes.length === 0 ? (
-              <p className="text-sm text-ink/50 mb-3">No notes yet.</p>
+              <EmptyState title="No notes yet." className="py-6 mb-3" />
             ) : (
               <ol className="flex flex-col gap-4 mb-4">
                 {notes.map((n) => (
@@ -67,7 +71,7 @@ export default async function EncounterPage({ params }: { params: { id: string }
                         {n.authorName || "Unknown"} · {formatDateTime(n.createdAt)}
                       </span>
                     </div>
-                    {n.presentingLine && <p className="text-sm font-medium">{n.presentingLine}</p>}
+                    {n.presentingLine && <p className="text-sm font-medium" dir="auto">{n.presentingLine}</p>}
                     {n.complaint?.main && (
                       <p className="text-sm text-ink/70 mt-1">Complaint: {n.complaint.main} ({n.complaint.duration})</p>
                     )}
@@ -78,7 +82,7 @@ export default async function EncounterPage({ params }: { params: { id: string }
                       <p className="text-sm text-ink/70 mt-1"><span className="font-medium">Rec:</span> {n.recommendation}</p>
                     )}
                     {n.treatmentOrders?.length > 0 && (
-                      <p className="text-sm text-ink/70 mt-1">
+                      <p className="text-sm text-ink/70 mt-1" dir="auto">
                         <span className="font-medium">Orders:</span> {n.treatmentOrders.join(", ")}
                       </p>
                     )}
@@ -86,21 +90,21 @@ export default async function EncounterPage({ params }: { params: { id: string }
                 ))}
               </ol>
             )}
-            <AddNoteForm encounterId={encounter._id!.toString()} caseType={encounter.caseType} />
+            <AddNoteForm encounterId={encounter._id!.toString()} caseType={encounter.caseType} patientAge={patient?.age ?? 0} />
           </Card>
 
           {/* Lab panel */}
           <Card title="Lab results">
-            <LabPanel results={labPanel?.results || []} />
+            <LabPanel results={labPanel?.results || []} presetTests={labPanel?.presetTests || []} />
             <AddLabEntryForm encounterId={encounter._id!.toString()} />
           </Card>
 
           {/* Imaging */}
           <Card title="Imaging requests">
             {imaging.length === 0 ? (
-              <p className="text-sm text-ink/50 mb-3">No imaging requested.</p>
+              <EmptyState title="No imaging requested." className="py-6 mb-3" />
             ) : (
-              <ul className="flex flex-col divide-y divide-black/5 mb-4">
+              <ul className="flex flex-col divide-y divide-border mb-4">
                 {imaging.map((im) => (
                   <li key={im._id!.toString()} className="py-2.5 flex items-center justify-between">
                     <div>
@@ -124,9 +128,9 @@ export default async function EncounterPage({ params }: { params: { id: string }
           {/* Referrals */}
           <Card title="Referrals / consults">
             {referrals.length === 0 ? (
-              <p className="text-sm text-ink/50 mb-3">No referrals yet.</p>
+              <EmptyState title="No referrals yet." className="py-6 mb-3" />
             ) : (
-              <ul className="flex flex-col divide-y divide-black/5 mb-4">
+              <ul className="flex flex-col divide-y divide-border mb-4">
                 {referrals.map((r) => (
                   <li key={r._id!.toString()} className="py-2.5">
                     <div className="flex items-center justify-between">
@@ -149,7 +153,7 @@ export default async function EncounterPage({ params }: { params: { id: string }
             {!treatmentLog || treatmentLog.entries.length === 0 ? (
               <p className="text-sm text-ink/50 mb-3">No treatments logged.</p>
             ) : (
-              <ul className="flex flex-col divide-y divide-black/5 mb-4">
+              <ul className="flex flex-col divide-y divide-border mb-4">
                 {treatmentLog.entries.map((t, i) => (
                   <li key={i} className="py-2.5">
                     <p className="text-sm font-medium">{t.treatment}</p>
@@ -212,6 +216,11 @@ export default async function EncounterPage({ params }: { params: { id: string }
                 )}
               </div>
             )}
+          </Card>
+
+          {/* Generic forms */}
+          <Card title="Generic forms">
+            <FormRecords encounterId={encounter._id!.toString()} />
           </Card>
 
           {/* Discharge */}

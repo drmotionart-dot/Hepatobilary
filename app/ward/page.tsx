@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import AppShell from "@/components/AppShell";
 import PageHeader from "@/components/ui/PageHeader";
 import Card from "@/components/ui/Card";
+import EmptyState from "@/components/ui/EmptyState";
 import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
 import { requireSession, apiFetchServer } from "@/lib/api";
@@ -57,7 +58,7 @@ function PatientCard({ e, accent }: { e: WardCard; accent: "male" | "female" }) 
       <Card className={`border-l-4 ${border} hover:border-primary/40 transition-colors`}>
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
-            <p className="text-sm font-semibold truncate">{p?.fullName || "Unknown"}</p>
+            <p className="text-sm font-semibold truncate" dir="auto">{p?.fullName || "Unknown"}</p>
             <p className="text-xs text-ink/50 mt-0.5 font-mono">{p?.medicalNumber} · {p?.age} yrs</p>
           </div>
           <div className="flex items-center gap-2 shrink-0">
@@ -88,7 +89,7 @@ function PatientCard({ e, accent }: { e: WardCard; accent: "male" | "female" }) 
         </div>
 
         {e.lastNote?.presentingLine && (
-          <p className="text-xs text-ink/60 mt-2 line-clamp-1">{e.lastNote.presentingLine}</p>
+          <p className="text-xs text-ink/60 mt-2 line-clamp-1" dir="auto">{e.lastNote.presentingLine}</p>
         )}
       </Card>
     </Link>
@@ -105,9 +106,7 @@ function WardColumn({ title, color, cards, accent }: { title: string; color: str
       </div>
       <div className="flex flex-col gap-3">
         {cards.length === 0 ? (
-          <Card>
-            <p className="text-sm text-ink/50">No active {title.toLowerCase()} ward patients.</p>
-          </Card>
+          <EmptyState title={`No active ${title.toLowerCase()} ward patients.`} className="py-6" />
         ) : (
           cards.map((e) => <PatientCard key={e._id.toString()} e={e} accent={accent} />)
         )}
@@ -133,9 +132,11 @@ export default async function WardPage() {
           title="Ward"
           subtitle="Day-by-day board — active inpatients by side"
           action={
-            <Link href="/clinic">
-              <Button size="sm">+ Open new case (clinic)</Button>
-            </Link>
+            <div className="print:hidden">
+              <Link href="/clinic">
+                <Button size="sm">+ Open new case (clinic)</Button>
+              </Link>
+            </div>
           }
         />
 
@@ -149,7 +150,7 @@ export default async function WardPage() {
                   className={`flex flex-col items-center justify-center w-12 py-2 rounded-lg border text-center ${
                     isToday
                       ? "border-primary bg-primary text-white"
-                      : "border-black/10 bg-surface text-ink/60"
+                      : "border-border bg-surface text-ink/60"
                   }`}
                 >
                   <span className={`text-[10px] uppercase ${isToday ? "text-white/80" : "text-ink/40"}`}>

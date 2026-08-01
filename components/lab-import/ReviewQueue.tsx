@@ -91,7 +91,7 @@ export default function ReviewQueue({ imports }: { imports: any[] }) {
           )}
 
           {expanded === i._id && (
-            <div className="mt-4 flex flex-col gap-3 border-t border-black/10 pt-4">
+            <div className="mt-4 flex flex-col gap-3 border-t border-border pt-4">
               <p className="text-xs text-ink/60">
                 Link this import to an existing patient by medical number, or create a new patient record.
               </p>
@@ -102,12 +102,12 @@ export default function ReviewQueue({ imports }: { imports: any[] }) {
                 </div>
                 <div>
                   <Label>Full name (only if creating a new patient)</Label>
-                  <Input value={fullName} onChange={(e) => setFullName(e.target.value)} />
+                  <Input dir="auto" value={fullName} onChange={(e) => setFullName(e.target.value)} />
                 </div>
               </div>
               {error && <p className="text-xs text-danger">{error}</p>}
               <div>
-                <Button size="sm" disabled={loading || !medicalNumber.trim()} onClick={() => resolve(i._id)}>
+                <Button size="sm" disabled={loading || !medicalNumber.trim()} loading={loading} onClick={() => resolve(i._id)}>
                   {loading ? "Linking…" : "Link patient & mark matched"}
                 </Button>
               </div>

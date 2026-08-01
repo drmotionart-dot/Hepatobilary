@@ -15,12 +15,3 @@ export function formatDateTime(d: string | Date | undefined | null) {
     minute: "2-digit",
   });
 }
-
-export function todayKey(d = new Date()) {
-  return d.toISOString().slice(0, 10);
-}
-
-export function dayName(d: string | Date) {
-  const date = typeof d === "string" ? new Date(d) : d;
-  return date.toLocaleDateString("en-GB", { weekday: "long" });
-}

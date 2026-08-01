@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
@@ -10,6 +10,7 @@ import { Select } from "@/components/ui/Select";
 import { Textarea } from "@/components/ui/Textarea";
 import { CASE_TYPES } from "@/lib/constants";
 import { apiFetch } from "@/lib/client-api";
+import { smokerOrders } from "@/lib/auto-triggers";
 
 export default function EmergencyAssessmentForm() {
   const router = useRouter();
@@ -37,6 +38,18 @@ export default function EmergencyAssessmentForm() {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  const [patientAge, setPatientAge] = useState(0);
+  const [ecgRequired, setEcgRequired] = useState(false);
+  const [echoRequired, setEchoRequired] = useState(false);
+  const [smoker, setSmoker] = useState(false);
+
+  useEffect(() => {
+    if (step === "note") {
+      setEcgRequired(patientAge > 40);
+      setEchoRequired(patientAge > 60);
+    }
+  }, [step, patientAge]);
 
   async function search(e?: React.FormEvent) {
     e?.preventDefault();
@@ -73,6 +86,7 @@ export default function EmergencyAssessmentForm() {
   async function handlePatientNext() {
     setError("");
     if (selected) {
+      setPatientAge(selected.age || 0);
       const enc = await openEncounter(selected._id);
       if (enc) {
         setSelected(enc);
@@ -94,6 +108,7 @@ export default function EmergencyAssessmentForm() {
       return;
     }
     const p = await pRes.json();
+    setPatientAge(Number(age));
     const enc = await openEncounter(p._id);
     if (enc) {
       setSelected(enc);
@@ -106,6 +121,11 @@ export default function EmergencyAssessmentForm() {
     setError("");
     setLoading(true);
 
+    const orders = smokerOrders(
+      treatmentOrders.split("\n").map((s) => s.trim()).filter(Boolean),
+      smoker
+    );
+
     const res = await apiFetch("/api/clinical-notes", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -114,12 +134,12 @@ export default function EmergencyAssessmentForm() {
         context: "emergency-assessment",
         presentingLine,
         complaint: { main, duration, associated: [], pertinentNegatives: [], bowelHabit: "normal", dysuria: false, viralHepatitis: { hcv: false, hbv: false, hiv: false } },
-        generalExam: { consciousness, bp, hr: Number(hr) || 0, ecgRequired: false, ecgDone: false, echoRequired: false, echoDone: false },
+        generalExam: { consciousness, bp, hr: Number(hr) || 0, ecgRequired, ecgDone: false, echoRequired, echoDone: false },
         localExam: { templateUsed: caseType === "custom" ? "generic" : caseType, fields: {} },
-        riskFactors: {},
+        riskFactors: { smoker },
         investigationsOrdered: [],
         recommendation,
-        treatmentOrders: treatmentOrders.split("\n").map((s) => s.trim()).filter(Boolean),
+        treatmentOrders: orders,
       }),
     });
     setLoading(false);
@@ -139,7 +159,7 @@ export default function EmergencyAssessmentForm() {
         <form onSubmit={submitNote} className="flex flex-col gap-3">
           <div>
             <Label>Presenting line</Label>
-            <Input value={presentingLine} onChange={(e) => setPresentingLine(e.target.value)} placeholder="e.g. 60-year-old male, sudden RUQ pain" />
+            <Input dir="auto" value={presentingLine} onChange={(e) => setPresentingLine(e.target.value)} placeholder="e.g. 60-year-old male, sudden RUQ pain" />
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
@@ -167,19 +187,36 @@ export default function EmergencyAssessmentForm() {
               </Select>
             </div>
           </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 rounded-lg bg-ink/[0.03] p-3">
+            <label className="flex items-center gap-2 text-sm">
+              <input type="checkbox" checked={ecgRequired} onChange={(e) => setEcgRequired(e.target.checked)} />
+              <span>ECG required</span>
+              {patientAge > 40 && <span className="text-xs text-ink/40">(auto — age {patientAge})</span>}
+            </label>
+            <label className="flex items-center gap-2 text-sm">
+              <input type="checkbox" checked={echoRequired} onChange={(e) => setEchoRequired(e.target.checked)} />
+              <span>Echo required</span>
+              {patientAge > 60 && <span className="text-xs text-ink/40">(auto — age {patientAge})</span>}
+            </label>
+            <label className="flex items-center gap-2 text-sm">
+              <input type="checkbox" checked={smoker} onChange={(e) => setSmoker(e.target.checked)} />
+              <span>Smoker</span>
+              {smoker && <span className="text-xs text-ink/40">(adds Atrovent + Pulmicort)</span>}
+            </label>
+          </div>
           <div>
             <Label>Recommendation</Label>
             <Textarea rows={2} value={recommendation} onChange={(e) => setRecommendation(e.target.value)} />
           </div>
           <div>
             <Label>Treatment orders (one per line)</Label>
-            <Textarea rows={2} value={treatmentOrders} onChange={(e) => setTreatmentOrders(e.target.value)} />
+            <Textarea rows={2} dir="auto" value={treatmentOrders} onChange={(e) => setTreatmentOrders(e.target.value)} />
           </div>
 
           {error && <p className="text-xs text-danger">{error}</p>}
 
           <div className="flex gap-2">
-            <Button type="submit" disabled={loading}>{loading ? "Saving…" : "Save assessment"}</Button>
+            <Button type="submit" loading={loading}>{loading ? "Saving…" : "Save assessment"}</Button>
             <Button variant="ghost" onClick={() => setStep("patient")}>Back</Button>
           </div>
         </form>
@@ -195,15 +232,15 @@ export default function EmergencyAssessmentForm() {
       </form>
 
       {results.length > 0 && (
-        <ul className="flex flex-col divide-y divide-black/5 mb-3">
+        <ul className="flex flex-col divide-y divide-border mb-3">
           {results.map((p) => (
             <li key={p._id} className="py-2">
               <button
                 type="button"
                 onClick={() => setSelected(selected?._id === p._id ? null : p)}
-                className={`w-full text-left px-2 py-1 rounded-md text-sm ${selected?._id === p._id ? "bg-primary/10" : "hover:bg-black/5"}`}
+                className={`w-full text-left px-2 py-1 rounded-md text-sm ${selected?._id === p._id ? "bg-primary/10" : "hover:bg-ink/5"}`}
               >
-                <span className="font-medium">{p.fullName}</span>
+                <span className="font-medium" dir="auto">{p.fullName}</span>
                 <span className="text-ink/50 ml-2">{p.medicalNumber} · {p.age}y</span>
               </button>
             </li>
@@ -224,7 +261,7 @@ export default function EmergencyAssessmentForm() {
             </div>
             <div className="col-span-2">
               <Label>Full name *</Label>
-              <Input value={fullName} onChange={(e) => setFullName(e.target.value)} required />
+              <Input dir="auto" value={fullName} onChange={(e) => setFullName(e.target.value)} required />
             </div>
             <div>
               <Label>Sex</Label>
@@ -238,7 +275,7 @@ export default function EmergencyAssessmentForm() {
 
         {selected && (
           <div className="rounded-lg bg-primary/5 p-3 text-sm">
-            <p className="font-medium">{selected.fullName}</p>
+            <p className="font-medium" dir="auto">{selected.fullName}</p>
             <p className="text-ink/60 text-xs mt-0.5">{selected.medicalNumber} — existing patient</p>
           </div>
         )}
@@ -268,7 +305,7 @@ export default function EmergencyAssessmentForm() {
 
         {error && <p className="text-xs text-danger">{error}</p>}
 
-        <Button onClick={handlePatientNext} disabled={loading}>
+        <Button onClick={handlePatientNext} loading={loading}>
           {loading ? "Opening…" : "Next — write assessment"}
         </Button>
       </div>

@@ -101,7 +101,7 @@ export default function StatusActions({ encounterId, encounterType }: { encounte
   ];
 
   return (
-    <Card>
+    <Card className="print:hidden">
       <div className="flex flex-wrap gap-2">
         {actions.map((a) => (
           <Button
@@ -124,7 +124,7 @@ export default function StatusActions({ encounterId, encounterType }: { encounte
             <div>
               <Label>Admit to</Label>
               <select
-                className="w-full rounded-lg border border-black/10 bg-white px-3 py-2 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+                className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
                 value={ward}
                 onChange={(e) => setWard(e.target.value)}
               >
@@ -137,7 +137,7 @@ export default function StatusActions({ encounterId, encounterType }: { encounte
             <div>
               <Label>Specialty to refer to</Label>
               <input
-                className="w-full rounded-lg border border-black/10 bg-white px-3 py-2 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+                className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
                 value={referSpecialty}
                 onChange={(e) => setReferSpecialty(e.target.value)}
                 required
@@ -171,7 +171,7 @@ export default function StatusActions({ encounterId, encounterType }: { encounte
           {error && <p className="text-xs text-danger">{error}</p>}
 
           <div className="flex gap-2">
-            <Button type="submit" disabled={loading}>
+            <Button type="submit" loading={loading}>
               {loading ? "Saving…" : "Confirm"}
             </Button>
             <Button variant="ghost" onClick={() => setMode("none")}>

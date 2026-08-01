@@ -46,7 +46,7 @@ export default function ChangePasswordPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-bg px-4">
-      <div className="w-full max-w-sm rounded-2xl bg-surface p-6 shadow-sm border border-black/5">
+      <div className="w-full max-w-sm rounded-2xl bg-surface p-6 shadow-sm border border-border">
         <h1 className="text-lg font-semibold text-primary mb-1">Change password</h1>
         <p className="text-sm text-ink/60 mb-6">
           Your temporary password has expired — set a new one to continue. (Minimum 8 characters)
@@ -68,7 +68,7 @@ export default function ChangePasswordPage() {
 
           {error && <p className="text-xs text-danger">{error}</p>}
 
-          <Button type="submit" disabled={loading}>
+          <Button type="submit" loading={loading}>
             {loading ? "Saving…" : "Save new password"}
           </Button>
         </form>

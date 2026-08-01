@@ -43,7 +43,7 @@ export default function AddTreatmentForm({ encounterId }: { encounterId: string 
   if (!open) return <Button size="sm" variant="secondary" onClick={() => setOpen(true)}>+ Log treatment</Button>;
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-3 border-t border-black/10 pt-4">
+    <form onSubmit={handleSubmit} className="flex flex-col gap-3 border-t border-border pt-4 print:hidden">
       <div>
         <Label>Treatment</Label>
         <Input value={treatment} onChange={(e) => setTreatment(e.target.value)} placeholder="e.g. IV fluids, antibiotics" required />
@@ -60,7 +60,7 @@ export default function AddTreatmentForm({ encounterId }: { encounterId: string 
       {error && <p className="text-xs text-danger">{error}</p>}
 
       <div className="flex gap-2">
-        <Button type="submit" disabled={loading}>{loading ? "Saving…" : "Log"}</Button>
+        <Button type="submit" loading={loading}>{loading ? "Saving…" : "Log"}</Button>
         <Button variant="ghost" onClick={() => setOpen(false)}>Cancel</Button>
       </div>
     </form>

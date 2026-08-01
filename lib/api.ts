@@ -63,6 +63,10 @@ export async function apiFetchServer<T>(path: string): Promise<T | null> {
     headers: token ? { Authorization: `Bearer ${token}` } : undefined,
     cache: "no-store",
   });
-  if (!res.ok) return null;
+  // 401 = not authenticated → pages redirect to /login.
+  // Anything else (e.g. a transient 500) throws so app/error.tsx renders an
+  // error state instead of silently logging the user out.
+  if (res.status === 401) return null;
+  if (!res.ok) throw new Error(`API ${path} failed with status ${res.status}`);
   return (await res.json()) as T;
 }

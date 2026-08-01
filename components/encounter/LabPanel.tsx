@@ -1,13 +1,22 @@
 import { Fragment } from "react";
+import EmptyState from "@/components/ui/EmptyState";
 import type { LabResultEntry } from "@/lib/models/types";
 
 const dateKey = (d: string | Date) => new Date(d).toDateString();
 const shortDate = (d: string | Date) =>
   new Date(d).toLocaleDateString("en-GB", { day: "2-digit", month: "short" });
 
-export default function LabPanel({ results }: { results: LabResultEntry[] }) {
+export default function LabPanel({ results, presetTests = [] }: { results: LabResultEntry[]; presetTests?: string[] }) {
   if (results.length === 0) {
-    return <p className="text-sm text-ink/50 mb-3">No lab results yet.</p>;
+    if (presetTests.length > 0) {
+      return (
+        <div className="rounded-lg bg-primary/5 p-3 mb-3">
+          <p className="text-xs font-medium text-primary mb-1">Awaiting results (ordered with this case type)</p>
+          <p className="text-xs text-ink/60 font-mono">{presetTests.join(" · ")}</p>
+        </div>
+      );
+    }
+    return <EmptyState title="No lab results yet." className="py-6 mb-3" />;
   }
 
   const dates = [...new Set(results.map((r) => dateKey(r.date)))].sort(
@@ -28,8 +37,8 @@ export default function LabPanel({ results }: { results: LabResultEntry[] }) {
     <div className="overflow-x-auto mb-4">
       <table className="w-full text-sm border-collapse">
         <thead>
-          <tr className="text-left text-xs text-ink/50 border-b border-black/20">
-            <th className="py-2 pr-3 font-medium sticky left-0 bg-surface dark:bg-dark-surface">Test</th>
+          <tr className="text-left text-xs text-ink/50 border-b border-border">
+            <th className="py-2 pr-3 font-medium sticky left-0 bg-surface">Test</th>
             {dates.map((d) => (
               <th key={d} className="py-2 pr-3 font-medium text-right whitespace-nowrap" title={new Date(d).toDateString()}>
                 {shortDate(d)}
@@ -44,15 +53,15 @@ export default function LabPanel({ results }: { results: LabResultEntry[] }) {
             return (
               <Fragment key={category}>
                 <tr>
-                  <td colSpan={dates.length + 1} className="pt-3 pb-1 text-xs font-semibold uppercase tracking-wide text-ink/60 border-b border-black/10">
+                  <td colSpan={dates.length + 1} className="pt-3 pb-1 text-xs font-semibold uppercase tracking-wide text-ink/60 border-b border-border">
                     {category}
                   </td>
                 </tr>
                 {tests.map((test) => {
                   const first = rows.find((r) => r.test === test)!;
                   return (
-                    <tr key={test} className="border-b border-black/5">
-                      <td className="py-1.5 pr-3 sticky left-0 bg-surface dark:bg-dark-surface">
+                    <tr key={test} className="border-b border-border">
+                      <td className="py-1.5 pr-3 sticky left-0 bg-surface">
                         <span className="font-medium">{test}</span>
                         {(first.unit || first.refRange) && (
                           <span className="block text-xs text-ink/40">
@@ -84,6 +93,11 @@ export default function LabPanel({ results }: { results: LabResultEntry[] }) {
           })}
         </tbody>
       </table>
+      {presetTests.length > 0 && (
+        <p className="text-xs text-ink/50 mt-2">
+          Still awaiting: <span className="font-mono">{presetTests.join(" · ")}</span>
+        </p>
+      )}
     </div>
   );
 }

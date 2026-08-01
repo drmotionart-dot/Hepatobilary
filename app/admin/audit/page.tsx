@@ -2,31 +2,43 @@ import { redirect } from "next/navigation";
 import AppShell from "@/components/AppShell";
 import PageHeader from "@/components/ui/PageHeader";
 import Card from "@/components/ui/Card";
+import EmptyState from "@/components/ui/EmptyState";
+import AuditLogFilters from "@/components/admin/AuditLogFilters";
 import { requireRole, apiFetchServer } from "@/lib/api";
 import { formatDateTime } from "@/lib/format";
 import type { AuditLog } from "@/lib/models/types";
 
 type AuditLogWithName = AuditLog & { performedByName: string };
 
-export default async function AdminAuditPage() {
+export default async function AdminAuditPage({ searchParams }: { searchParams: Record<string, string> }) {
   const session = await requireRole(["resident", "admin"]);
   if (!session) redirect("/dashboard");
 
-  const logs = (await apiFetchServer<AuditLogWithName[]>("/api/audit-log?limit=200")) || [];
+  const { collection, action, user, from, to } = searchParams;
+  const params = new URLSearchParams({ limit: "200" });
+  if (collection) params.set("collection", collection);
+  if (action) params.set("action", action);
+  if (user) params.set("user", user);
+  if (from) params.set("from", from);
+  if (to) params.set("to", to);
+
+  const logs = (await apiFetchServer<AuditLogWithName[]>(`/api/audit-log?${params.toString()}`)) || [];
 
   return (
     <AppShell>
       <div className="max-w-4xl mx-auto p-4 md:p-8">
-        <PageHeader title="Audit log" subtitle="Last 200 write operations across the system" />
+        <PageHeader title="Audit log" subtitle="Write operations across the system" />
 
-        <Card>
+        <Card className="p-0 overflow-hidden">
+          <AuditLogFilters initial={{ collection, action, user, from, to }} />
+
           {logs.length === 0 ? (
-            <p className="text-sm text-ink/50">No audit entries yet.</p>
+            <EmptyState title="No audit entries match these filters." className="py-6" />
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="text-left text-xs text-ink/50 border-b border-black/10">
+                  <tr className="text-left text-xs text-ink/50 border-b border-border">
                     <th className="py-2 pr-3">When</th>
                     <th className="py-2 pr-3">User</th>
                     <th className="py-2 pr-3">Collection</th>
@@ -36,7 +48,7 @@ export default async function AdminAuditPage() {
                 </thead>
                 <tbody>
                   {logs.map((l) => (
-                    <tr key={l._id!.toString()} className="border-b border-black/5">
+                    <tr key={l._id!.toString()} className="border-b border-border">
                       <td className="py-2 pr-3 whitespace-nowrap text-xs text-ink/60">{formatDateTime(l.performedAt)}</td>
                       <td className="py-2 pr-3">{l.performedByName || "Unknown"}</td>
                       <td className="py-2 pr-3 font-mono text-xs">{l.collection}</td>

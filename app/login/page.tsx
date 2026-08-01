@@ -10,7 +10,7 @@ import { apiFetch, setToken } from "@/lib/client-api";
 
 export default function LoginPage() {
   const router = useRouter();
-  const [email, setEmail] = useState("");
+  const [loginId, setLoginId] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -23,7 +23,7 @@ export default function LoginPage() {
     const res = await apiFetch("/api/auth/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ loginId, password }),
     });
     const data = await res.json();
     setLoading(false);
@@ -46,14 +46,14 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-bg px-4">
-      <div className="w-full max-w-sm rounded-2xl bg-surface p-6 shadow-sm border border-black/5">
+      <div className="w-full max-w-sm rounded-2xl bg-surface p-6 shadow-sm border border-border">
         <h1 className="text-lg font-semibold text-primary mb-1">HPB Department</h1>
         <p className="text-sm text-ink/60 mb-6">Sign in to continue.</p>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-3">
           <div>
-            <Label htmlFor="email">Email or username</Label>
-            <Input id="email" type="text" value={email} onChange={(e) => setEmail(e.target.value)} required />
+            <Label htmlFor="loginId">Email or login ID</Label>
+            <Input id="loginId" type="text" value={loginId} onChange={(e) => setLoginId(e.target.value)} required />
           </div>
           <div>
             <Label htmlFor="password">Password</Label>
@@ -62,7 +62,7 @@ export default function LoginPage() {
 
           {error && <p className="text-xs text-danger">{error}</p>}
 
-          <Button type="submit" disabled={loading}>
+          <Button type="submit" loading={loading}>
             {loading ? "Signing in…" : "Sign in"}
           </Button>
         </form>

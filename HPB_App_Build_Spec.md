@@ -45,7 +45,12 @@ All collections live in MongoDB. Every document has `createdAt`, `updatedAt`, `c
   _id,
   fullName,
   role: "intern" | "resident" | "admin",
-  username / email,
+  loginId,                      // the ACTUAL login credential, unique, lowercase.
+                                // Self-registered: their email. Bulk-generated: "hpb" + phone digits (e.g. hpb01123456789)
+                                // or "hpb-" + random suffix when there is no phone/email.
+  email: string | null,         // optional; self-registered accounts always have one
+  phone: string | null,         // canonical identity key — normalized digits (stripped of spaces/"+20"/"0020").
+                                // Unique across users; this is what both imports match on (spec 6.1 / 10.2).
   passwordHash,                 // via Auth.js
   accountType: "self-registered" | "bulk-generated",
   status: "pending-approval" | "active" | "expired" | "removed",
@@ -57,6 +62,7 @@ All collections live in MongoDB. Every document has `createdAt`, `updatedAt`, `c
 }
 ```
 See section 11 for the full registration/approval/expiry workflow this schema supports.
+Registration is the only path that lets the applicant supply a phone (optional).
 
 ### 3.2 `Patient`
 ```
@@ -395,6 +401,11 @@ Rather than filling shifts day by day as they approach, the roster should be pla
 
 - **Bulk-generate action:** given a date range (e.g. the next 8 weeks), the system walks every date, resolves its `DayTypeCalendar` (defaulting Thursdays → clinic, Sun/Wed → normal+surgeryOverlay, else → normal, unless already manually overridden), and creates one empty `ShiftAssignment` per applicable `RoleSlotDefinition` for that day. The result is the *entire skeleton* of the next 8 weeks' shifts — every day and every subcategory (Long/Night, Route/Ward/Typing, Clinic, Surgery-list) already laid out and identified, just waiting for names.
 - **Filling:** a resident/admin can fill slots individually, or (as a later enhancement, matching Wardyati's distribution modes) allow self-booking — interns/residents claim open slots themselves within rules (manual assignment, free-for-all booking, or auto-equalized distribution). Not required for launch, but the schema (`ShiftAssignment` as discrete slot documents) supports adding this later without a redesign.
+- **Excel import (Wardyati format):** a resident/admin uploads a roster spreadsheet — one row per day, one column per shift slot, cells holding `name + phone` bulleted entries. The importer resolves each person against `User` by **phone first, then name** (phone is the canonical identity key, spec 3.1), binds them into the matching `ShiftAssignment` slot (or `EmergencyDayPool` for emergency days), and writes a `RosterImport` audit record.
+- **Unmatched review queue:** entries that matched no known user land in a review list. Each can be:
+  - **Matched** to an existing user by hand, or **ignored**; or
+  - **"Create accounts for unmatched"** — the key action (spec 10.2's account generation reused): a person with a phone gets an account created and bound to their slot in one click (`create-account` per row, or `create-all` for the whole queue). Phones that already have accounts are never duplicated. The generated `loginId` + password are shown in the UI.
+  - Once an account exists, re-importing the same roster file matches everyone automatically — the review loop closes without any manual account admin.
 - **Excel export:** a "export roster to Excel" action (using a free library like SheetJS, already free-tier-compatible) for anyone who wants a printable/offline copy — the same convenience Wardyati offers.
 - Every generate/fill/edit action on the roster is captured in `AuditLog` per section 7.1.
 
@@ -512,11 +523,12 @@ For onboarding a whole rotation of interns at once, rather than one-by-one self-
 1. **Download template** — a button generates a blank `.xlsx` with columns: `Name | Email | Number`.
 2. Resident/admin fills it offline with everyone in the current rotation, then **uploads** it back.
 3. Server parses each row and, per row:
-   - Creates a `User` with `role: "intern"`, `accountType: "bulk-generated"`, `status: "active"`, `mustChangePassword: true`.
-   - Generates a login ID and a random temporary password.
+   - **Phone is the identity key (spec 3.1).** If a row's `number` (or email, as fallback) already matches an existing `User`, the row is reported as **existing** and no duplicate is created — a person only ever has one account no matter how many rotations they pass through.
+   - Otherwise creates a `User` with `role: "intern"`, `accountType: "bulk-generated"`, `status: "active"`, `mustChangePassword: true`, `phone` set to the normalized row number.
+   - Generates the **login ID** and a random temporary password. Login ID is `hpb` + normalized phone digits (e.g. `hpb01123456789`); `hpb` + 6 random chars when there is no phone.
    - Sets `expiresAt = uploadedAt + 50 days`.
    - Links the account to a `RotationImport` record (below) via `rotationImportId`.
-4. **Regenerated Excel** — the server produces the same spreadsheet back, now with two additional columns filled in: `Generated ID` and `Generated Password`, ready to hand out to the rotation.
+4. **Import result** — the upload response includes the generated `loginId` and `password` per created row, ready to hand out to the rotation (the admin UI prints them inline).
 5. **First login** forces a password change (`mustChangePassword`) before they can do anything else — once changed, that flag clears, but `expiresAt` is untouched; bulk-generated accounts still expire at 50 days regardless of whether the password was changed.
 6. **Expiry:** once `expiresAt` passes, `status → "expired"` automatically (checked at login, or via a lightweight scheduled check) — login is blocked. A new rotation import naturally supersedes it; no manual cleanup needed.
 
@@ -528,7 +540,8 @@ For onboarding a whole rotation of interns at once, rather than one-by-one self-
   uploadedAt: date,
   sourceFileName: string,
   rows: [
-    { name, email, number, generatedUserId, generatedPassword, status: "created" | "error", errorReason?: string }
+    { name, email?: string, number?: string, generatedUserId, generatedLoginId, generatedPassword?,
+      status: "created" | "existing" | "error", errorReason?: string }
   ]
 }
 ```

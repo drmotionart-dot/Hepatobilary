@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { requireSession } from "@/lib/api";
 import TopBar from "@/components/TopBar";
+import MobileNav from "@/components/MobileNav";
 
 const NAV = [
   { href: "/dashboard", label: "Dashboard" },
@@ -28,7 +29,7 @@ export default async function AppShell({ children }: { children: React.ReactNode
 
       <div className="flex flex-1">
         {/* Desktop sidebar */}
-        <aside className="hidden md:flex w-56 flex-col border-r border-black/5 bg-surface p-4">
+        <aside className="hidden md:flex w-56 flex-col border-r border-border bg-surface p-4 print:hidden">
           <div className="mb-8 px-2 text-lg font-semibold text-primary">HPB Department</div>
           <nav className="flex flex-col gap-1">
             {NAV.map((item) => (
@@ -78,16 +79,7 @@ export default async function AppShell({ children }: { children: React.ReactNode
         <main className="flex-1 pb-16 md:pb-0">{children}</main>
 
         {/* Mobile bottom tab bar */}
-        <nav className="md:hidden fixed bottom-0 inset-x-0 z-10 flex justify-around border-t border-black/5 bg-surface py-2">
-          {NAV.map((item) => (
-            <Link key={item.href} href={item.href} className="flex-1 text-center text-xs font-medium py-1">
-              {item.label}
-            </Link>
-          ))}
-          <Link href="/roster" className="flex-1 text-center text-xs font-medium py-1">
-            Roster
-          </Link>
-        </nav>
+        <MobileNav items={NAV} extra={[{ href: "/roster", label: "Roster" }]} className="print:hidden" />
       </div>
     </div>
   );

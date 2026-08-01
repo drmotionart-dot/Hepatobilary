@@ -1,4 +1,4 @@
-import type { CaseType, DayType, EncounterType, LabCategory } from "@/lib/models/types";
+import type { CaseType, DayType, LabCategory } from "@/lib/models/types";
 
 export const CASE_TYPES: { value: CaseType; label: string }[] = [
   { value: "hernia", label: "Hernia" },
@@ -12,12 +12,6 @@ export function caseTypeDisplay(caseType: string, customCaseTypeLabel?: string |
   if (caseType === "custom") return customCaseTypeLabel?.trim() || "Custom";
   return CASE_TYPES.find((c) => c.value === caseType)?.label || caseType;
 }
-
-export const ENCOUNTER_TYPES: { value: EncounterType; label: string }[] = [
-  { value: "emergency", label: "Emergency" },
-  { value: "ward", label: "Ward" },
-  { value: "clinic", label: "Clinic" },
-];
 
 export const DAY_TYPES: { value: DayType; label: string }[] = [
   { value: "normal", label: "Normal day" },

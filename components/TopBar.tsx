@@ -88,11 +88,11 @@ export default function TopBar({ user }: { user: UserInfo | null }) {
   }
 
   return (
-    <header className="sticky top-0 z-20 border-b border-black/10 bg-surface dark:border-dark-border dark:bg-dark-surface">
+    <header className="sticky top-0 z-20 border-b border-border bg-surface print:hidden">
       <div className="mx-auto flex max-w-5xl items-center gap-2 px-4 py-2.5">
         <Link
           href="/dashboard"
-          className="text-base font-semibold text-primary md:hidden dark:text-dark-primary"
+          className="text-base font-semibold text-primary md:hidden"
         >
           HPB
         </Link>
@@ -113,12 +113,12 @@ export default function TopBar({ user }: { user: UserInfo | null }) {
                 if (e.key === "Enter" && results.length > 0) openPatient(results[0]);
               }}
               placeholder="Search patients…"
-              className="w-full rounded-lg border border-black/10 bg-bg px-3 py-1.5 pl-8 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-dark-border dark:bg-dark-bg dark:text-dark-ink dark:placeholder:text-dark-ink/40"
+              className="w-full rounded-lg border border-border bg-bg px-3 py-1.5 pl-8 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
             />
           </div>
 
           {open && (q.trim().length >= 2 || searching) && (
-            <div className="absolute left-0 right-0 top-full z-30 mt-1 max-h-72 overflow-y-auto rounded-lg border border-black/10 bg-surface shadow-lg dark:border-dark-border dark:bg-dark-surface">
+            <div className="absolute left-0 right-0 top-full z-30 mt-1 max-h-72 overflow-y-auto rounded-lg border border-border bg-surface shadow-lg">
               {searching && <p className="px-3 py-2 text-xs text-ink/50">Searching…</p>}
               {!searching && results.length === 0 && (
                 <p className="px-3 py-2 text-xs text-ink/50">No patients found.</p>
@@ -131,7 +131,7 @@ export default function TopBar({ user }: { user: UserInfo | null }) {
                       onClick={() => openPatient(p)}
                       className="flex w-full items-center justify-between px-3 py-2 text-left text-sm hover:bg-primary/10"
                     >
-                      <span className="font-medium">{p.fullName}</span>
+                      <span className="font-medium" dir="auto">{p.fullName}</span>
                       <span className="text-xs text-ink/50">
                         {p.medicalNumber} · {p.age}y · {p.sex}
                       </span>
@@ -147,7 +147,7 @@ export default function TopBar({ user }: { user: UserInfo | null }) {
           type="button"
           onClick={toggleTheme}
           title={dark ? "Switch to light mode" : "Switch to dark mode"}
-          className="inline-flex items-center justify-center rounded-lg border border-black/10 p-2 text-ink/70 transition-colors hover:bg-primary/10 hover:text-primary dark:border-dark-border dark:text-dark-ink/70"
+          className="inline-flex items-center justify-center rounded-lg border border-border p-2 text-ink/70 transition-colors hover:bg-primary/10 hover:text-primary"
         >
           {dark ? <IconSun /> : <IconMoon />}
         </button>
@@ -162,7 +162,7 @@ export default function TopBar({ user }: { user: UserInfo | null }) {
         <button
           type="button"
           onClick={handleSignOut}
-          className="inline-flex items-center gap-1.5 rounded-lg border border-black/10 px-3 py-1.5 text-sm font-medium text-ink/80 transition-colors hover:bg-danger/10 hover:text-danger dark:border-dark-border dark:text-dark-ink/80"
+          className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-sm font-medium text-ink/80 transition-colors hover:bg-danger/10 hover:text-danger"
         >
           <IconLogout />
           <span className="hidden sm:inline">Sign out</span>

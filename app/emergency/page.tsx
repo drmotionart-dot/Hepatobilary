@@ -31,13 +31,13 @@ export default async function EmergencyPage() {
             {encounters.length === 0 ? (
               <p className="text-sm text-ink/50">No emergency cases in the last 24 hours.</p>
             ) : (
-              <ul className="flex flex-col divide-y divide-black/5">
+              <ul className="flex flex-col divide-y divide-border">
                 {encounters.map((e) => {
                   const p = e.patient;
                   return (
                     <li key={e._id!.toString()} className="py-2.5 flex items-center justify-between">
                       <div>
-                        <p className="text-sm font-medium">{p?.fullName || "Unknown"}</p>
+                        <p className="text-sm font-medium" dir="auto">{p?.fullName || "Unknown"}</p>
                         <p className="text-xs text-ink/50">
                           {p?.medicalNumber} · {formatDateTime(e.openedAt)}
                           {e.noteSummary ? ` · ${e.noteSummary}` : ""}

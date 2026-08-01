@@ -101,15 +101,15 @@ export default function NewCaseForm() {
           {results.length === 0 ? (
             <p className="text-xs text-ink/50">No matching patient. Fill the details below to create one.</p>
           ) : (
-            <ul className="flex flex-col divide-y divide-black/5">
+            <ul className="flex flex-col divide-y divide-border">
               {results.map((p) => (
                 <li key={p._id} className="py-2">
                   <button
                     type="button"
                     onClick={() => setSelected(selected?._id === p._id ? null : p)}
-                    className={`w-full text-left px-2 py-1 rounded-md text-sm ${selected?._id === p._id ? "bg-primary/10" : "hover:bg-black/5"}`}
+                    className={`w-full text-left px-2 py-1 rounded-md text-sm ${selected?._id === p._id ? "bg-primary/10" : "hover:bg-ink/5"}`}
                   >
-                    <span className="font-medium">{p.fullName}</span>
+                    <span className="font-medium" dir="auto">{p.fullName}</span>
                     <span className="text-ink/50 ml-2">{p.medicalNumber} · {p.age}y · {p.sex}</span>
                   </button>
                 </li>
@@ -123,7 +123,7 @@ export default function NewCaseForm() {
       <form onSubmit={handleSubmit} className="flex flex-col gap-3">
         {selected ? (
           <div className="rounded-lg bg-primary/5 p-3 text-sm">
-            <p className="font-medium">{selected.fullName}</p>
+            <p className="font-medium" dir="auto">{selected.fullName}</p>
             <p className="text-ink/60 text-xs mt-0.5">{selected.medicalNumber} — using existing patient record</p>
           </div>
         ) : (
@@ -134,7 +134,7 @@ export default function NewCaseForm() {
             </div>
             <div className="col-span-2">
               <Label>Full name *</Label>
-              <Input value={fullName} onChange={(e) => setFullName(e.target.value)} required />
+              <Input dir="auto" value={fullName} onChange={(e) => setFullName(e.target.value)} required />
             </div>
             <div>
               <Label>Age *</Label>
@@ -166,7 +166,7 @@ export default function NewCaseForm() {
 
         {error && <p className="text-xs text-danger">{error}</p>}
 
-        <Button type="submit" disabled={loading}>
+        <Button type="submit" loading={loading}>
           {loading ? "Opening…" : "Open case & write note"}
         </Button>
       </form>

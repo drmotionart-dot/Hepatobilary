@@ -48,7 +48,7 @@ export default function AddImagingForm({ encounterId }: { encounterId: string })
   if (!open) return <Button size="sm" variant="secondary" onClick={() => setOpen(true)}>+ Request imaging</Button>;
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-3 border-t border-black/10 pt-4">
+    <form onSubmit={handleSubmit} className="flex flex-col gap-3 border-t border-border pt-4 print:hidden">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
           <Label>Modality</Label>
@@ -81,7 +81,7 @@ export default function AddImagingForm({ encounterId }: { encounterId: string })
       {error && <p className="text-xs text-danger">{error}</p>}
 
       <div className="flex gap-2">
-        <Button type="submit" disabled={loading}>{loading ? "Saving…" : "Request"}</Button>
+        <Button type="submit" loading={loading}>{loading ? "Saving…" : "Request"}</Button>
         <Button variant="ghost" onClick={() => setOpen(false)}>Cancel</Button>
       </div>
     </form>

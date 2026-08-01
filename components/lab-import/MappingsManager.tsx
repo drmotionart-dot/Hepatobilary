@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
+import EmptyState from "@/components/ui/EmptyState";
 import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
 import { Select } from "@/components/ui/Select";
@@ -58,7 +59,7 @@ export default function MappingsManager({ mappings }: { mappings: any[] }) {
             </Select>
           </div>
           <div className="flex items-end">
-            <Button type="submit" disabled={loading}>{loading ? "Saving…" : "Add"}</Button>
+            <Button type="submit" loading={loading}>{loading ? "Saving…" : "Add"}</Button>
           </div>
         </form>
         {error && <p className="text-xs text-danger mt-2">{error}</p>}
@@ -66,12 +67,12 @@ export default function MappingsManager({ mappings }: { mappings: any[] }) {
 
       <Card title={`Mappings (${mappings.length})`}>
         {mappings.length === 0 ? (
-          <p className="text-sm text-ink/50">No mappings yet.</p>
+          <EmptyState title="No mappings yet." className="py-6" />
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="text-left text-xs text-ink/50 border-b border-black/10">
+                <tr className="text-left text-xs text-ink/50 border-b border-border">
                   <th className="py-2 pr-3">External (PDF) name</th>
                   <th className="py-2 pr-3">Internal key</th>
                   <th className="py-2">Category</th>
@@ -79,7 +80,7 @@ export default function MappingsManager({ mappings }: { mappings: any[] }) {
               </thead>
               <tbody>
                 {mappings.map((m) => (
-                  <tr key={m._id} className="border-b border-black/5">
+                  <tr key={m._id} className="border-b border-border">
                     <td className="py-2 pr-3 font-medium">{m.externalTestName}</td>
                     <td className="py-2 pr-3">{m.internalTestKey}</td>
                     <td className="py-2">{m.category}</td>

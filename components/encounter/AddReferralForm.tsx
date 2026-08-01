@@ -42,7 +42,7 @@ export default function AddReferralForm({ encounterId }: { encounterId: string }
   if (!open) return <Button size="sm" variant="secondary" onClick={() => setOpen(true)}>+ Refer / consult</Button>;
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-3 border-t border-black/10 pt-4">
+    <form onSubmit={handleSubmit} className="flex flex-col gap-3 border-t border-border pt-4 print:hidden">
       <div>
         <Label>Specialty</Label>
         <Input value={toSpecialty} onChange={(e) => setToSpecialty(e.target.value)} placeholder="e.g. Cardiology, ICU, Radiology" required />
@@ -55,7 +55,7 @@ export default function AddReferralForm({ encounterId }: { encounterId: string }
       {error && <p className="text-xs text-danger">{error}</p>}
 
       <div className="flex gap-2">
-        <Button type="submit" disabled={loading}>{loading ? "Saving…" : "Refer"}</Button>
+        <Button type="submit" loading={loading}>{loading ? "Saving…" : "Refer"}</Button>
         <Button variant="ghost" onClick={() => setOpen(false)}>Cancel</Button>
       </div>
     </form>

@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import AppShell from "@/components/AppShell";
 import PageHeader from "@/components/ui/PageHeader";
 import Card from "@/components/ui/Card";
+import EmptyState from "@/components/ui/EmptyState";
 import Badge from "@/components/ui/Badge";
 import LabImportUploader from "@/components/lab-import/LabImportUploader";
 import { requireSession, apiFetchServer } from "@/lib/api";
@@ -36,9 +37,9 @@ export default async function LabImportPage() {
 
           <Card title="Recent imports">
             {recent.length === 0 ? (
-              <p className="text-sm text-ink/50">No imports yet.</p>
+              <EmptyState title="No imports yet." className="py-6" />
             ) : (
-              <ul className="flex flex-col divide-y divide-black/5">
+              <ul className="flex flex-col divide-y divide-border">
                 {recent.map((i) => {
                   const p = i.matchedPatient;
                   return (
@@ -48,7 +49,7 @@ export default async function LabImportPage() {
                         <Badge tone={i.status === "matched" ? "success" : "warning"}>{i.status}</Badge>
                       </div>
                       <p className="text-xs text-ink/50 mt-0.5">
-                        {i.patientCode} · {p ? p.fullName : "unmatched"} · {i.extractedTests.length} tests · {formatDateTime(i.importedAt)}
+                        {i.patientCode} · <span dir="auto">{p ? p.fullName : "unmatched"}</span> · {i.extractedTests.length} tests · {formatDateTime(i.importedAt)}
                       </p>
                     </li>
                   );

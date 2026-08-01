@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/Label";
 import { Select } from "@/components/ui/Select";
 import { Textarea } from "@/components/ui/Textarea";
 import { apiFetch } from "@/lib/client-api";
+import { ageBasedInvestigations, smokerOrders } from "@/lib/auto-triggers";
 
 type TemplateField = {
   fieldKey: string;
@@ -16,7 +17,7 @@ type TemplateField = {
   options?: string[];
 };
 
-export default function AddNoteForm({ encounterId, caseType }: { encounterId: string; caseType: string }) {
+export default function AddNoteForm({ encounterId, caseType, patientAge = 0 }: { encounterId: string; caseType: string; patientAge?: number }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [context, setContext] = useState("new-case");
@@ -29,21 +30,34 @@ export default function AddNoteForm({ encounterId, caseType }: { encounterId: st
   const [recommendation, setRecommendation] = useState("");
   const [treatmentOrders, setTreatmentOrders] = useState("");
   const [localFields, setLocalFields] = useState<Record<string, unknown>>({});
+  const [smoker, setSmoker] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  const auto = ageBasedInvestigations(patientAge);
+  const [ecgRequired, setEcgRequired] = useState(auto.ecgRequired);
+  const [echoRequired, setEchoRequired] = useState(auto.echoRequired);
+
   useEffect(() => {
     if (!open) return;
+    setEcgRequired(auto.ecgRequired);
+    setEchoRequired(auto.echoRequired);
     apiFetch(`/api/case-type-templates`).then((r) => r.json()).then((templates: any[]) => {
       const t = templates.find((x) => x.name.toLowerCase() === caseType) || templates.find((x) => x.name.toLowerCase() === "generic") || null;
       setTemplate(t);
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, caseType]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
     setLoading(true);
+
+    const orders = smokerOrders(
+      treatmentOrders.split("\n").map((s) => s.trim()).filter(Boolean),
+      smoker
+    );
 
     const res = await apiFetch("/api/clinical-notes", {
       method: "POST",
@@ -53,12 +67,12 @@ export default function AddNoteForm({ encounterId, caseType }: { encounterId: st
         context,
         presentingLine,
         complaint: { main, duration, associated: [], pertinentNegatives: [], bowelHabit: "normal", dysuria: false, viralHepatitis: { hcv: false, hbv: false, hiv: false } },
-        generalExam: { consciousness: "A", bp, hr: Number(hr) || 0, ecgRequired: false, ecgDone: false, echoRequired: false, echoDone: false },
+        generalExam: { consciousness: "A", bp, hr: Number(hr) || 0, ecgRequired, ecgDone: false, echoRequired, echoDone: false },
         localExam: { templateUsed: template ? template.name.toLowerCase() : "generic", fields: localFields },
-        riskFactors: {},
+        riskFactors: { smoker },
         investigationsOrdered: [],
         recommendation,
-        treatmentOrders: treatmentOrders.split("\n").map((s) => s.trim()).filter(Boolean),
+        treatmentOrders: orders,
       }),
     });
     setLoading(false);
@@ -85,14 +99,14 @@ export default function AddNoteForm({ encounterId, caseType }: { encounterId: st
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-3 border-t border-black/10 pt-4">
+    <form onSubmit={handleSubmit} className="flex flex-col gap-3 border-t border-border pt-4 print:hidden">
       <div className="flex gap-2">
         {["new-case", "emergency-assessment", "specialty-consult", "follow-up"].map((c) => (
           <button
             key={c}
             type="button"
             onClick={() => setContext(c)}
-            className={`px-2.5 py-1 text-xs font-medium rounded-md capitalize ${context === c ? "bg-primary text-white" : "bg-black/5 text-ink/60"}`}
+            className={`px-2.5 py-1 text-xs font-medium rounded-md capitalize ${context === c ? "bg-primary text-white" : "bg-ink/5 text-ink/60"}`}
           >
             {c.replace("-", " ")}
           </button>
@@ -101,7 +115,7 @@ export default function AddNoteForm({ encounterId, caseType }: { encounterId: st
 
       <div>
         <Label>Presenting line</Label>
-        <Input value={presentingLine} onChange={(e) => setPresentingLine(e.target.value)} placeholder="e.g. 55-year-old male with RUQ pain" />
+        <Input dir="auto" value={presentingLine} onChange={(e) => setPresentingLine(e.target.value)} placeholder="e.g. 55-year-old male with RUQ pain" />
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -121,6 +135,24 @@ export default function AddNoteForm({ encounterId, caseType }: { encounterId: st
           <Label>HR</Label>
           <Input type="number" value={hr} onChange={(e) => setHr(e.target.value)} />
         </div>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 rounded-lg bg-ink/[0.03] p-3">
+        <label className="flex items-center gap-2 text-sm">
+          <input type="checkbox" checked={ecgRequired} onChange={(e) => setEcgRequired(e.target.checked)} />
+          <span>ECG required</span>
+          {patientAge > 40 && <span className="text-xs text-ink/40">(auto — age {patientAge})</span>}
+        </label>
+        <label className="flex items-center gap-2 text-sm">
+          <input type="checkbox" checked={echoRequired} onChange={(e) => setEchoRequired(e.target.checked)} />
+          <span>Echo required</span>
+          {patientAge > 60 && <span className="text-xs text-ink/40">(auto — age {patientAge})</span>}
+        </label>
+        <label className="flex items-center gap-2 text-sm">
+          <input type="checkbox" checked={smoker} onChange={(e) => setSmoker(e.target.checked)} />
+          <span>Smoker</span>
+          {smoker && <span className="text-xs text-ink/40">(adds Atrovent + Pulmicort)</span>}
+        </label>
       </div>
 
       {template && (template.leChecklist || []).length > 0 && (
@@ -162,13 +194,13 @@ export default function AddNoteForm({ encounterId, caseType }: { encounterId: st
 
       <div>
         <Label>Treatment orders (one per line)</Label>
-        <Textarea rows={2} value={treatmentOrders} onChange={(e) => setTreatmentOrders(e.target.value)} />
+        <Textarea rows={2} dir="auto" value={treatmentOrders} onChange={(e) => setTreatmentOrders(e.target.value)} />
       </div>
 
       {error && <p className="text-xs text-danger">{error}</p>}
 
       <div className="flex gap-2">
-        <Button type="submit" disabled={loading}>{loading ? "Saving…" : "Save note"}</Button>
+        <Button type="submit" loading={loading}>{loading ? "Saving…" : "Save note"}</Button>
         <Button variant="ghost" onClick={() => setOpen(false)}>Cancel</Button>
       </div>
     </form>

@@ -1,7 +1,7 @@
 type Tone = "default" | "success" | "warning" | "danger" | "info";
 
 const tones: Record<Tone, string> = {
-  default: "bg-black/5 text-ink/70",
+  default: "bg-ink/5 text-ink/70",
   success: "bg-success/10 text-success",
   warning: "bg-warning/10 text-warning",
   danger: "bg-danger/10 text-danger",

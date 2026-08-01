@@ -7,24 +7,21 @@ export default {
   theme: {
     extend: {
       colors: {
-        bg: "#F6F7F5",
-        surface: "#FFFFFF",
-        ink: "#1C2321",
-        primary: { DEFAULT: "#0E5C56", ink: "#0A403C" },
-        male: "#3B5BA5",
-        female: "#B15C6B",
-        urgent: "#C4472B",
-        pending: "#D98E3B",
-        success: "#3E8F6B",
-        // Dark-mode counterparts (Phase 3 completes the full sweep; these
-        // drive the top bar and body today).
-        dark: {
-          bg: "#101513",
-          surface: "#1A211E",
-          ink: "#E8EDEA",
-          border: "#2A332F",
-          primary: "#35B8AC",
+        bg: "rgb(var(--bg) / <alpha-value>)",
+        surface: "rgb(var(--surface) / <alpha-value>)",
+        ink: "rgb(var(--ink) / <alpha-value>)",
+        border: "rgb(var(--border) / <alpha-value>)",
+        primary: {
+          DEFAULT: "rgb(var(--primary) / <alpha-value>)",
+          ink: "rgb(var(--primary-ink) / <alpha-value>)",
         },
+        male: "rgb(var(--male) / <alpha-value>)",
+        female: "rgb(var(--female) / <alpha-value>)",
+        urgent: "rgb(var(--urgent) / <alpha-value>)",
+        pending: "rgb(var(--pending) / <alpha-value>)",
+        success: "rgb(var(--success) / <alpha-value>)",
+        danger: "rgb(var(--urgent) / <alpha-value>)",
+        warning: "rgb(var(--pending) / <alpha-value>)",
       },
       fontFamily: {
         sans: ["var(--font-plex-sans)", "var(--font-plex-sans-arabic)", "sans-serif"],

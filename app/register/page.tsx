@@ -13,6 +13,7 @@ export default function RegisterPage() {
   const router = useRouter();
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState("intern");
   const [message, setMessage] = useState("");
@@ -28,7 +29,7 @@ export default function RegisterPage() {
     const res = await apiFetch("/api/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ fullName, email, password, role }),
+      body: JSON.stringify({ fullName, email, phone, password, role }),
     });
     const data = await res.json();
     setLoading(false);
@@ -43,7 +44,7 @@ export default function RegisterPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-bg px-4">
-      <div className="w-full max-w-sm rounded-2xl bg-surface p-6 shadow-sm border border-black/5">
+      <div className="w-full max-w-sm rounded-2xl bg-surface p-6 shadow-sm border border-border">
         <h1 className="text-lg font-semibold text-primary mb-1">Request access</h1>
         <p className="text-sm text-ink/60 mb-6">
           Your account stays inactive until an admin approves it.
@@ -52,11 +53,16 @@ export default function RegisterPage() {
         <form onSubmit={handleSubmit} className="flex flex-col gap-3">
           <div>
             <Label htmlFor="fullName">Full name</Label>
-            <Input id="fullName" value={fullName} onChange={(e) => setFullName(e.target.value)} required />
+            <Input id="fullName" dir="auto" value={fullName} onChange={(e) => setFullName(e.target.value)} required />
           </div>
           <div>
             <Label htmlFor="email">Email</Label>
             <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+          </div>
+          <div>
+            <Label htmlFor="phone">Phone (optional)</Label>
+            <Input id="phone" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} />
+            <p className="text-[11px] text-ink/50 mt-1">Used to match your account to roster imports automatically.</p>
           </div>
           <div>
             <Label htmlFor="password">Password</Label>
@@ -73,7 +79,7 @@ export default function RegisterPage() {
           {error && <p className="text-xs text-danger">{error}</p>}
           {message && <p className="text-xs text-success">{message}</p>}
 
-          <Button type="submit" disabled={loading}>
+          <Button type="submit" loading={loading}>
             {loading ? "Submitting…" : "Submit request"}
           </Button>
         </form>

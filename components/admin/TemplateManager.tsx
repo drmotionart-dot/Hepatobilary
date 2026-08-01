@@ -99,12 +99,12 @@ export default function TemplateManager({ templates }: { templates: any[] }) {
 
           {error && <p className="text-xs text-danger">{error}</p>}
 
-          <Button type="submit" disabled={loading}>{loading ? "Saving…" : "Create template"}</Button>
+          <Button type="submit" loading={loading}>{loading ? "Saving…" : "Create template"}</Button>
         </form>
       </Card>
 
       <Card title={`Templates (${templates.length})`}>
-        <ul className="flex flex-col divide-y divide-black/5">
+        <ul className="flex flex-col divide-y divide-border">
           {templates.map((t) => (
             <li key={t._id} className="py-3">
               <div className="flex items-center justify-between">

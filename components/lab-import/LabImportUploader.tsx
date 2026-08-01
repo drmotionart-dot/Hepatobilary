@@ -51,7 +51,7 @@ export default function LabImportUploader() {
         )}
         {error && <p className="text-xs text-danger">{error}</p>}
 
-        <Button type="submit" disabled={loading || files.length === 0}>
+        <Button type="submit" disabled={loading || files.length === 0} loading={loading}>
           {loading ? "Importing…" : `Import ${files.length || ""} PDF${files.length === 1 ? "" : "s"}`}
         </Button>
       </form>

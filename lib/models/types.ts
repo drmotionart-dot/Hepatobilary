@@ -18,7 +18,9 @@ export interface User {
   _id?: ObjectId;
   fullName: string;
   role: Role;
-  email: string;
+  loginId: string; // the login credential — email for self-registered, hpb<phone> for bulk-generated (spec 3.1)
+  email?: string | null;
+  phone?: string; // canonical identity key, normalized digits — reliable match key for imports (spec 3.1 / 6.1)
   passwordHash: string;
   accountType: AccountType;
   status: AccountStatus;
@@ -33,11 +35,12 @@ export interface User {
 
 export interface RotationImportRow {
   name: string;
-  email: string;
-  number: string;
+  email?: string | null;
+  number?: string;
   generatedUserId?: string;
+  generatedLoginId?: string;
   generatedPassword?: string;
-  status: "created" | "error";
+  status: "created" | "existing" | "error";
   errorReason?: string;
 }
 
@@ -152,6 +155,7 @@ export interface LabPanel {
   _id?: ObjectId;
   encounterId: ObjectId;
   results: LabResultEntry[];
+  presetTests?: string[];
 }
 
 export interface LabTestNameMapping {
@@ -287,7 +291,7 @@ export interface DayTypeCalendar {
 }
 
 export type ShiftType = "long" | "night" | "24hr" | "surgery-partial";
-export type ShiftCategory = "ward" | "clinic" | "emergency-route" | "typing" | "none";
+export type ShiftCategory = "ward" | "clinic" | "emergency-route" | "typing" | "ward-prep" | "none";
 
 export interface RoleSlotDefinition {
   _id?: ObjectId;
@@ -296,15 +300,27 @@ export interface RoleSlotDefinition {
   shiftType: ShiftType;
   category: ShiftCategory;
   label: string;
+  weekdays?: number[]; // 0=Sunday … 6=Saturday; absent = every day of the dayType
 }
 
 export interface ShiftAssignment {
   _id?: ObjectId;
   date: Date;
   roleSlotDefinitionId: ObjectId;
-  userId: ObjectId | null;
+  userIds: ObjectId[]; // a slot can hold a duty group, not just one person (spec 6.1)
   startTime?: string;
   endTime?: string;
+}
+
+export type EmergencyPoolShiftType = "long" | "night";
+
+export interface EmergencyDayPool {
+  _id?: ObjectId;
+  date: Date;
+  shiftType: EmergencyPoolShiftType;
+  userIds: ObjectId[];
+  createdBy: ObjectId;
+  createdAt: Date;
 }
 
 export interface AuditLog {

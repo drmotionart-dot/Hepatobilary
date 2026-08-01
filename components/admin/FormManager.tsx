@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
+import EmptyState from "@/components/ui/EmptyState";
 import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
 import Badge from "@/components/ui/Badge";
@@ -59,22 +60,22 @@ export default function FormManager({ templates }: { templates: any[] }) {
             <Label>Fields (one per line, format: Label:type — type is text, textarea, or select)</Label>
             <textarea
               rows={5}
-              className="w-full rounded-lg border border-black/10 bg-white px-3 py-2 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+              className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
               value={fields}
               onChange={(e) => setFields(e.target.value)}
               placeholder={"Post-op vitals:text\nPain score:select\nComments:textarea"}
             />
           </div>
           {error && <p className="text-xs text-danger">{error}</p>}
-          <Button type="submit" disabled={loading}>{loading ? "Saving…" : "Create template"}</Button>
+          <Button type="submit" loading={loading}>{loading ? "Saving…" : "Create template"}</Button>
         </form>
       </Card>
 
       <Card title={`Templates (${templates.length})`}>
         {templates.length === 0 ? (
-          <p className="text-sm text-ink/50">No form templates yet.</p>
+          <EmptyState title="No form templates yet." className="py-6" />
         ) : (
-          <ul className="flex flex-col divide-y divide-black/5">
+          <ul className="flex flex-col divide-y divide-border">
             {templates.map((t) => (
               <li key={t._id} className="py-2.5">
                 <div className="flex items-center justify-between">

@@ -1,28 +1,30 @@
 type ShiftPerson = { name: string; category: string };
+import EmptyState from "@/components/ui/EmptyState";
 
 // The signature element described in spec section 8: always visible at the
-// top of the dashboard, no navigation required. The pulsing dot marks the
-// currently active shift; respects prefers-reduced-motion globally (see
-// app/globals.css). Data below is placeholder — wire to
-// GET /api/roster/today once the ShiftAssignment API route exists.
+// top of the dashboard, no navigation required. The pulsing dot marks a live
+// shift; respects prefers-reduced-motion globally (see app/globals.css).
+// Data comes from GET /api/dashboard (people + activeShift).
 export default function OnShiftCard({
   dayType = "Normal",
   activeShift = "Long",
   people = [] as ShiftPerson[]
 }) {
   return (
-    <div className="rounded-2xl bg-surface p-5 shadow-sm border border-black/5">
+    <div className="rounded-2xl bg-surface p-5 shadow-sm border border-border">
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <span className="h-2.5 w-2.5 rounded-full bg-success animate-on-shift-pulse" aria-hidden />
-          <h2 className="text-sm font-semibold text-ink/70">On shift now — {activeShift} shift</h2>
+          <h2 className="text-sm font-semibold text-ink/70">
+            On shift now{activeShift === "unassigned" ? " — no one assigned yet" : ""}
+          </h2>
         </div>
         <span className="text-xs font-medium rounded-full bg-primary/10 text-primary px-2.5 py-1">
           {dayType} day
         </span>
       </div>
       {people.length === 0 ? (
-        <p className="text-sm text-ink/50">No shift assigned yet for this slot.</p>
+        <EmptyState title="No shift assigned yet for this slot." className="py-6" />
       ) : (
         <ul className="flex flex-col gap-1.5">
           {people.map((p) => (

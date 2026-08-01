@@ -95,9 +95,9 @@ export default function ReferralReview({ referral }: { referral: ReferralConsult
         {referral.imageData && (
           <button type="button" onClick={() => setExpanded(!expanded)} className="mt-2 block">
             {expanded ? (
-              <img src={referral.imageData} alt="Referral hardcopy" className="max-h-96 rounded-lg border border-black/10" />
+              <img src={referral.imageData} alt="Referral hardcopy" className="max-h-96 rounded-lg border border-border" />
             ) : (
-              <img src={referral.imageData} alt="Referral hardcopy" className="h-24 rounded-lg border border-black/10 shadow-sm" />
+              <img src={referral.imageData} alt="Referral hardcopy" className="h-24 rounded-lg border border-border shadow-sm" />
             )}
           </button>
         )}
@@ -125,13 +125,13 @@ export default function ReferralReview({ referral }: { referral: ReferralConsult
       <div>
         <Label>Or upload a photo of the hardcopy</Label>
         <input type="file" accept="image/*" onChange={handleFile} className="text-sm" />
-        {photo && <img src={photo} alt="Selected photo" className="mt-2 h-24 rounded-lg border border-black/10" />}
+        {photo && <img src={photo} alt="Selected photo" className="mt-2 h-24 rounded-lg border border-border" />}
       </div>
 
       {error && <p className="text-xs text-danger">{error}</p>}
 
       <div className="flex gap-2">
-        <Button type="submit" disabled={loading}>{loading ? "Saving…" : "Done"}</Button>
+        <Button type="submit" loading={loading}>{loading ? "Saving…" : "Done"}</Button>
         <Button variant="ghost" onClick={() => setOpen(false)}>Cancel</Button>
       </div>
     </form>

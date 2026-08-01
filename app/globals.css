@@ -14,17 +14,39 @@
   --font-plex-sans: "IBM Plex Sans", system-ui, sans-serif;
   --font-plex-sans-arabic: "IBM Plex Sans Arabic", "IBM Plex Sans", sans-serif;
   --font-plex-mono: "IBM Plex Mono", ui-monospace, monospace;
+
+  /* Design tokens (spec section 8), stored as R G B triplets so Tailwind
+     opacity modifiers (e.g. text-ink/50) keep working via <alpha-value>. */
+  --bg: 246 247 245;
+  --surface: 255 255 255;
+  --ink: 28 35 33;
+  --border: 219 223 220;
+  --primary: 14 92 86;
+  --primary-ink: 10 64 60;
+  --male: 59 91 165;
+  --female: 177 92 107;
+  --urgent: 196 71 43;
+  --pending: 217 142 59;
+  --success: 62 143 107;
+}
+
+html.dark {
+  --bg: 16 21 19;
+  --surface: 26 33 30;
+  --ink: 232 237 234;
+  --border: 42 51 47;
+  --primary: 53 184 172;
+  --primary-ink: 96 210 199;
+  --male: 111 136 197;
+  --female: 200 122 134;
+  --urgent: 224 96 60;
+  --pending: 226 161 84;
+  --success: 88 168 130;
 }
 
 body {
-  background-color: #F6F7F5;
-  color: #1C2321;
-}
-
-/* Dark mode base (Phase 3 sweeps the rest of the app). */
-html.dark body {
-  background-color: #101513;
-  color: #E8EDEA;
+  background-color: rgb(var(--bg));
+  color: rgb(var(--ink));
 }
 
 @media (prefers-reduced-motion: no-preference) {

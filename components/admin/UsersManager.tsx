@@ -105,8 +105,11 @@ export default function UsersManager({ users, pending }: { users: any[]; pending
               {importResult.created}/{importResult.total} users created
             </p>
             {importResult.rows.filter((r: any) => r.status === "created").map((r: any, i: number) => (
-              <p key={i} className="text-ink/70 font-mono">{r.name} — {r.email} — pw: {r.generatedPassword}</p>
+              <p key={i} className="text-ink/70 font-mono">{r.name} — login: {r.generatedLoginId} — pw: {r.generatedPassword}</p>
             ))}
+            {importResult.existing > 0 && (
+              <p className="text-ink/50">{(importResult.existing)} already had accounts (matched by phone/email) — skipped.</p>
+            )}
           </div>
         )}
       </Card>
@@ -114,7 +117,7 @@ export default function UsersManager({ users, pending }: { users: any[]; pending
       {/* Pending approvals */}
       {pending.length > 0 && (
         <Card title={`Pending approvals (${pending.length})`}>
-          <ul className="flex flex-col divide-y divide-black/5">
+          <ul className="flex flex-col divide-y divide-border">
             {pending.map((u) => (
               <li key={u._id} className="py-2.5 flex items-center justify-between">
                 <div>
@@ -133,13 +136,14 @@ export default function UsersManager({ users, pending }: { users: any[]; pending
         {users.length === 0 ? (
           <p className="text-sm text-ink/50">No users yet.</p>
         ) : (
-          <ul className="flex flex-col divide-y divide-black/5">
+          <ul className="flex flex-col divide-y divide-border">
             {users.map((u) => (
               <li key={u._id} className="py-2.5 flex items-center justify-between gap-2">
                 <div className="min-w-0">
                   <p className="text-sm font-medium">{u.fullName}</p>
                   <p className="text-xs text-ink/50 truncate">
-                    {u.email} · {u.role} · {u.accountType}
+                    {u.loginId || u.email} · {u.role} · {u.accountType}
+                    {u.phone ? ` · ${u.phone}` : ""}
                     {u.expiresAt ? ` · expires ${formatDate(u.expiresAt)}` : ""}
                   </p>
                 </div>

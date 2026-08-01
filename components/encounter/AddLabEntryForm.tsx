@@ -49,7 +49,7 @@ export default function AddLabEntryForm({ encounterId }: { encounterId: string }
   if (!open) return <Button size="sm" variant="secondary" onClick={() => setOpen(true)}>+ Add result</Button>;
 
   return (
-    <form onSubmit={handleSubmit} className="grid grid-cols-1 sm:grid-cols-6 gap-3 border-t border-black/10 pt-4">
+    <form onSubmit={handleSubmit} className="grid grid-cols-1 sm:grid-cols-6 gap-3 border-t border-border pt-4 print:hidden">
       <div>
         <Label>Test</Label>
         <Input value={test} onChange={(e) => setTest(e.target.value)} placeholder="e.g. ALT" required />
@@ -80,7 +80,7 @@ export default function AddLabEntryForm({ encounterId }: { encounterId: string }
       {error && <p className="text-xs text-danger sm:col-span-6">{error}</p>}
 
       <div className="flex gap-2 sm:col-span-6">
-        <Button type="submit" disabled={loading}>{loading ? "Saving…" : "Save result"}</Button>
+        <Button type="submit" loading={loading}>{loading ? "Saving…" : "Save result"}</Button>
         <Button variant="ghost" onClick={() => setOpen(false)}>Cancel</Button>
       </div>
     </form>

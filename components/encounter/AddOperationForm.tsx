@@ -114,11 +114,11 @@ export default function AddOperationForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-3 border-t border-black/10 pt-4">
+    <form onSubmit={handleSubmit} className="flex flex-col gap-3 border-t border-border pt-4 print:hidden">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
           <Label>Procedure name *</Label>
-          <Input value={procedureName} onChange={(e) => setProcedureName(e.target.value)} placeholder="e.g. Laparoscopic cholecystectomy" required />
+            <Input dir="auto" value={procedureName} onChange={(e) => setProcedureName(e.target.value)} placeholder="e.g. Laparoscopic cholecystectomy" required />
         </div>
         <div>
           <Label>Date</Label>
@@ -126,11 +126,11 @@ export default function AddOperationForm({
         </div>
         <div>
           <Label>Pre-op diagnosis</Label>
-          <Input value={preOpDiagnosis} onChange={(e) => setPreOpDiagnosis(e.target.value)} />
+            <Input dir="auto" value={preOpDiagnosis} onChange={(e) => setPreOpDiagnosis(e.target.value)} />
         </div>
         <div>
           <Label>Post-op diagnosis</Label>
-          <Input value={postOpDiagnosis} onChange={(e) => setPostOpDiagnosis(e.target.value)} />
+            <Input dir="auto" value={postOpDiagnosis} onChange={(e) => setPostOpDiagnosis(e.target.value)} />
         </div>
         <div>
           <Label>Anesthesia type</Label>
@@ -154,7 +154,7 @@ export default function AddOperationForm({
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 mt-1">
             {users.map((u) => (
-              <label key={u._id} className="flex items-center gap-2 text-sm rounded-md px-2 py-1 hover:bg-black/5 cursor-pointer">
+              <label key={u._id} className="flex items-center gap-2 text-sm rounded-md px-2 py-1 hover:bg-ink/5 cursor-pointer">
                 <input
                   type="checkbox"
                   checked={assistants.includes(u._id)}
@@ -170,11 +170,11 @@ export default function AddOperationForm({
 
       <div>
         <Label>Findings</Label>
-        <Textarea rows={2} value={findings} onChange={(e) => setFindings(e.target.value)} />
+            <Textarea rows={2} dir="auto" value={findings} onChange={(e) => setFindings(e.target.value)} />
       </div>
       <div>
         <Label>Procedure details</Label>
-        <Textarea rows={2} value={procedureDetails} onChange={(e) => setProcedureDetails(e.target.value)} />
+            <Textarea rows={2} dir="auto" value={procedureDetails} onChange={(e) => setProcedureDetails(e.target.value)} />
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
@@ -183,7 +183,7 @@ export default function AddOperationForm({
         </div>
         <div>
           <Label>Complications</Label>
-          <Input value={complications} onChange={(e) => setComplications(e.target.value)} placeholder="None if none" />
+            <Input dir="auto" value={complications} onChange={(e) => setComplications(e.target.value)} placeholder="None if none" />
         </div>
       </div>
       <div>
@@ -192,13 +192,13 @@ export default function AddOperationForm({
       </div>
       <div>
         <Label>Post-op plan</Label>
-        <Textarea rows={2} value={postOpPlan} onChange={(e) => setPostOpPlan(e.target.value)} />
+            <Textarea rows={2} dir="auto" value={postOpPlan} onChange={(e) => setPostOpPlan(e.target.value)} />
       </div>
 
       {error && <p className="text-xs text-danger">{error}</p>}
 
       <div className="flex gap-2">
-        <Button type="submit" disabled={loading}>{loading ? "Saving…" : "Save operation record"}</Button>
+        <Button type="submit" loading={loading}>{loading ? "Saving…" : "Save operation record"}</Button>
         <Button variant="ghost" onClick={() => setOpen(false)}>Cancel</Button>
       </div>
     </form>
