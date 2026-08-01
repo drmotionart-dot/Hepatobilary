@@ -13,7 +13,15 @@ import { apiFetch } from "@/lib/client-api";
 
 type User = { _id: string; fullName: string; role: string };
 type Slot = { _id: string; dayType: string; personType: string; shiftType: string; category: string; label: string; weekdays?: number[] };
-type Assignment = { _id: string; date: string; roleSlotDefinitionId: string; userIds: string[]; startTime?: string | null; endTime?: string | null };
+type Assignment = {
+  _id: string;
+  date: string;
+  roleSlotDefinitionId: string;
+  userIds: string[];
+  startTime?: string | null;
+  endTime?: string | null;
+  absent?: { userId: string; absentReason: string }[];
+};
 type Pool = { _id: string; date: string; shiftType: "long" | "night"; userIds: string[] };
 type CalendarDay = { _id: string; date: string; dayType: string; surgeryOverlay: boolean };
 
@@ -47,6 +55,9 @@ export default function RosterBoard({ users, slots, assignments, calendar, pools
   const [bulkTo, setBulkTo] = useState("");
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  // Mark-absent inline reason row (spec 6.2): { slotId, userId } while open.
+  const [absentFor, setAbsentFor] = useState<{ slotId: string; userId: string } | null>(null);
+  const [absentReason, setAbsentReason] = useState("");
 
   const days = useMemo(() => {
     const list: { key: string; date: Date; cal?: CalendarDay }[] = [];
@@ -121,6 +132,38 @@ export default function RosterBoard({ users, slots, assignments, calendar, pools
     if (!res.ok) {
       const d = await res.json();
       setError(d.error || "Could not update assignment");
+      return;
+    }
+    router.refresh();
+  }
+
+  async function markAbsent(slotId: string, userId: string, reason: string) {
+    setError("");
+    const res = await apiFetch("/api/shift/absent", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ date: selected, roleSlotDefinitionId: slotId, userId, absentReason: reason }),
+    });
+    if (!res.ok) {
+      const d = await res.json();
+      setError(d.error || "Could not mark absent");
+      return;
+    }
+    setAbsentFor(null);
+    setAbsentReason("");
+    router.refresh();
+  }
+
+  async function clearAbsent(slotId: string, userId: string) {
+    setError("");
+    const res = await apiFetch("/api/shift/absent", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ date: selected, roleSlotDefinitionId: slotId, userId }),
+    });
+    if (!res.ok) {
+      const d = await res.json();
+      setError(d.error || "Could not clear absence mark");
       return;
     }
     router.refresh();
@@ -284,26 +327,76 @@ export default function RosterBoard({ users, slots, assignments, calendar, pools
                         {assigned.map((id) => {
                           const u = userById.get(id);
                           const isMe = id === currentUserId;
+                          const absence = (a?.absent || []).find((x) => x.userId === id);
                           return (
                             <span
                               key={id}
-                              className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-medium ${isMe ? "bg-success/15 text-success" : "bg-primary/10 text-primary"}`}
+                              title={absence ? `Absent — ${absence.absentReason}` : undefined}
+                              className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-medium ${
+                                absence
+                                  ? "bg-danger/10 text-danger"
+                                  : isMe
+                                    ? "bg-success/15 text-success"
+                                    : "bg-primary/10 text-primary"
+                              }`}
                             >
                               {u?.fullName || "Unknown"}{isMe ? " (you)" : ""}
+                              {absence && (
+                                <span className="rounded bg-danger/15 px-1 text-[10px] font-semibold uppercase tracking-wide">
+                                  absent
+                                </span>
+                              )}
+                              {canManage && !absence && (
+                                <button
+                                  type="button"
+                                  aria-label={`Mark ${u?.fullName || "user"} absent`}
+                                  title="Mark absent"
+                                  onClick={() => {
+                                    setAbsentFor({ slotId: s._id, userId: id });
+                                    setAbsentReason("");
+                                  }}
+                                  className="text-danger/70 hover:text-danger"
+                                >
+                                  Absent
+                                </button>
+                              )}
                               {canManage && (
                                 <button
                                   type="button"
-                                  aria-label={`Remove ${u?.fullName || "user"}`}
-                                  onClick={() => toggleUser(s._id, id)}
+                                  aria-label={absence ? `Clear absence for ${u?.fullName || "user"}` : `Remove ${u?.fullName || "user"}`}
+                                  title={absence ? "Clear absence mark" : "Remove from slot"}
+                                  onClick={() => (absence ? clearAbsent(s._id, id) : toggleUser(s._id, id))}
                                   className="text-primary/60 hover:text-danger"
                                 >
-                                  ×
+                                  {absence ? "↺" : "×"}
                                 </button>
                               )}
                             </span>
                           );
                         })}
                       </div>
+                    )}
+                    {absentFor && absentFor.slotId === s._id && (
+                      <form
+                        className="flex flex-wrap items-center gap-2 w-full sm:w-auto justify-end"
+                        onSubmit={(e) => {
+                          e.preventDefault();
+                          if (absentReason.trim()) markAbsent(s._id, absentFor.userId, absentReason.trim());
+                        }}
+                      >
+                        <span className="text-xs text-muted">Absence reason:</span>
+                        <Input
+                          className="w-44"
+                          value={absentReason}
+                          onChange={(e) => setAbsentReason(e.target.value)}
+                          placeholder="e.g. sick, personal leave"
+                          autoFocus
+                        />
+                        <Button type="submit" size="sm" variant="danger">Mark absent</Button>
+                        <button type="button" onClick={() => setAbsentFor(null)} className="text-xs text-muted hover:text-ink">
+                          Cancel
+                        </button>
+                      </form>
                     )}
                     {selfBook ? (
                       s.personType === "intern" && (
