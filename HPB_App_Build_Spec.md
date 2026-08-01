@@ -1,4 +1,5 @@
-# Hepatobiliary Surgery Department App — Build Specification
+# HPB App Build Specification
+> Internal reference — keep up to date as features land.
 
 **For:** Al Miri Hospital, Alexandria — Hepatobiliary Surgery Department
 **Purpose:** Documentation, Ward/Clinic/Emergency status tracking, and shift rostering for interns and residents
@@ -58,10 +59,12 @@ All collections live in MongoDB. Every document has `createdAt`, `updatedAt`, `c
   approvedAt: date | null,
   mustChangePassword: boolean,  // true on first login until they set their own password
   expiresAt: date | null,       // set for bulk-generated accounts (createdAt + 50 days); null = never expires
-  rotationImportId: rotationImportId | null   // links back to the Excel batch that created this account, if applicable
+  rotationImportId: rotationImportId | null,   // links back to the Excel batch that created this account, if applicable
+  tourCompletedAt: date | null, // set once the onboarding tour is completed or dismissed (spec 14)
+  grantedCapabilities: [capability] | [],   // optional per-intern capability grants (spec 11.7)
 }
 ```
-See section 11 for the full registration/approval/expiry workflow this schema supports.
+See section 10 for the full registration/approval/expiry workflow this schema supports.
 Registration is the only path that lets the applicant supply a phone (optional).
 
 ### 3.2 `Patient`
@@ -147,7 +150,7 @@ This is what makes the LE checklist, lab presets, and diet instructions configur
 }
 ```
 - Seeded at build time with Hernia, Biliary, Hepatic (specs in section 5).
-- An admin screen lets a user with admin rights edit any of these fields live.
+- An admin screen lets a user with the right to manage templates edit any of these fields live (resident + admin, spec 7).
 - `ClinicalNote.localExam.fields` stores the **answers** at time of entry — changing a template later never rewrites old notes.
 
 ### 3.6 `LabPanel` (per encounter, matches the paper Lab Investigation sheet exactly)
@@ -313,13 +316,22 @@ Thursdays default to `clinic`, Sundays/Wednesdays default to `normal` + `surgery
 
 **`RoleSlotDefinition`** (the rulebook — seeded once, rarely changed)
 ```
-{ _id, dayType, personType: "intern"|"resident", shiftType: "long"|"night"|"24hr"|"surgery-partial", category: "ward"|"clinic"|"emergency-route"|"typing"|"none", label }
+{ _id, dayType, personType: "intern"|"resident", shiftType: "long"|"night"|"24hr"|"surgery-partial", category: "ward"|"clinic"|"emergency-route"|"typing"|"none", label, weekdays?: [number] }
 ```
 Encodes every row of the shift tables from section 6.
 
 **`ShiftAssignment`**
 ```
-{ _id, date, roleSlotDefinitionId, userId, startTime?, endTime? }   // startTime/endTime used for the partial surgery-list slot
+{
+  _id,
+  date,                             // stored at local midnight
+  roleSlotDefinitionId,
+  userIds: [userId],                // a slot holds a group (Emergency Long → Route / Ward / Typing is 3 people)
+  startTime?, endTime?,             // used for the partial surgery-list slot
+  absent: [                         // per-person absence entries (spec 6.2); empty unless someone was marked absent
+    { userId, absentReason: string, absentMarkedBy: userId, absentMarkedAt: date }
+  ]
+}
 ```
 
 ---
@@ -401,13 +413,20 @@ Rather than filling shifts day by day as they approach, the roster should be pla
 
 - **Bulk-generate action:** given a date range (e.g. the next 8 weeks), the system walks every date, resolves its `DayTypeCalendar` (defaulting Thursdays → clinic, Sun/Wed → normal+surgeryOverlay, else → normal, unless already manually overridden), and creates one empty `ShiftAssignment` per applicable `RoleSlotDefinition` for that day. The result is the *entire skeleton* of the next 8 weeks' shifts — every day and every subcategory (Long/Night, Route/Ward/Typing, Clinic, Surgery-list) already laid out and identified, just waiting for names.
 - **Filling:** a resident/admin can fill slots individually, or (as a later enhancement, matching Wardyati's distribution modes) allow self-booking — interns/residents claim open slots themselves within rules (manual assignment, free-for-all booking, or auto-equalized distribution). Not required for launch, but the schema (`ShiftAssignment` as discrete slot documents) supports adding this later without a redesign.
-- **Excel import (Wardyati format):** a resident/admin uploads a roster spreadsheet — one row per day, one column per shift slot, cells holding `name + phone` bulleted entries. The importer resolves each person against `User` by **phone first, then name** (phone is the canonical identity key, spec 3.1), binds them into the matching `ShiftAssignment` slot (or `EmergencyDayPool` for emergency days), and writes a `RosterImport` audit record.
-- **Unmatched review queue:** entries that matched no known user land in a review list. Each can be:
-  - **Matched** to an existing user by hand, or **ignored**; or
-  - **"Create accounts for unmatched"** — the key action (spec 10.2's account generation reused): a person with a phone gets an account created and bound to their slot in one click (`create-account` per row, or `create-all` for the whole queue). Phones that already have accounts are never duplicated. The generated `loginId` + password are shown in the UI.
-  - Once an account exists, re-importing the same roster file matches everyone automatically — the review loop closes without any manual account admin.
-- **Excel export:** a "export roster to Excel" action (using a free library like SheetJS, already free-tier-compatible) for anyone who wants a printable/offline copy — the same convenience Wardyati offers.
+- **Excel import (Wardyati format):** a resident/admin uploads a roster spreadsheet — one row per day, one column per shift slot, cells holding `name + phone` bulleted entries. The importer resolves each person against `User` by **phone first, then name** (phone is the canonical identity key, spec 3.1), binds them into the matching `ShiftAssignment` slot (or the emergency duty pool for emergency days), and writes a `RotationImport` / audit record. The same upload also creates accounts for unmatched names that have a phone (spec 10.2 account generation reused) — generated `loginId` + password shown in the UI; phones that already have an account are never duplicated, so re-importing the same roster matches everyone automatically.
+- **Excel export:** an "export roster to Excel" action (free library like SheetJS, already free-tier-compatible) for anyone who wants a printable/offline copy — the same convenience Wardyati offers.
 - Every generate/fill/edit action on the roster is captured in `AuditLog` per section 7.1.
+
+### 6.2 Marking an intern absent
+A resident or admin can mark an intern assigned to a **future or current (mid-shift)** shift slot as absent.
+
+- **Data recorded:** `absentReason` (free text, **required** — e.g. "sick", "family emergency", "exam"), `absentMarkedBy` (the resident/admin who marked it), `absentMarkedAt` (timestamp). All are written as a per-person entry on the `ShiftAssignment` row (spec 3.13).
+- **Effects:**
+  - The intern **stays in the slot's assignment** — their name is NOT removed; the record shows they were assigned but absent, with the reason.
+  - Their name renders **struck-through with an "Absent" badge** and the reason, on the roster and on the dashboard "on shift" card.
+  - An **attendance** record is written for that intern for that shift date with `status: "absent"` and the reason as the note (spec 11.8), **unless** an explicit manual `present` attendance record already exists for that date — a manually-confirmed-present day is never overwritten.
+- **Un-marking:** a resident/admin can clear the absent flag. Clearing it does **not** delete the attendance record (a separate manual attendance correction can).
+- Works for future shifts and the current (mid-shift) day.
 
 ---
 
@@ -420,13 +439,18 @@ Rather than filling shifts day by day as they approach, the roster should be pla
 | Finalize discharge | ❌ | ✅ | — |
 | Approve/close follow-ups | ❌ | ✅ | — |
 | Complete/edit operation form | ❌ | ✅ | — |
-| Manage users | ❌ | ❌ | ✅ |
-| Manage `CaseTypeTemplate` / `FormTemplate` library | ❌ | ❌ | ✅ |
+| Manage user accounts (approve, create, remove, capability grants) | ❌ | ❌ | ✅ |
+| Manage `CaseTypeTemplate` / `FormTemplate` library | ❌ | ✅ | ✅ |
+| Manage lab test name mappings | ❌ | ✅ | ✅ |
 | Set `DayTypeCalendar` (mark Emergency days) | ❌ | ✅ | ✅ |
 | Fill/edit shift roster (`ShiftAssignment`) | ❌ | ✅ | ✅ |
+| Mark an intern absent (spec 6.2) | ❌ | ✅ | ✅ |
+| Import / export the rotation roster (spec 6.1 / 10.2) | ❌ | ✅ | ✅ |
+| View the Round Interns directory (spec 11.8) | ❌ | ✅ | ✅ |
+| View intern profile + attendance + roster history | ❌ | ✅ | ✅ |
 | View audit log | ❌ | ✅ | ✅ |
 
-Residents have full admin-equivalent rights over the calendar and roster specifically (this is the part of the system they run day to day) — everything else stays admin-only. Since residents now hold that power directly, the audit log below is the accountability mechanism: every change is attributed and visible, not just trusted. Admins additionally hold full clinical write rights (open cases, document patients) as a management/backstop capability — they are never shift-key gated, and only interns are prompted for the ward key.
+Residents get an **Admin-equivalent panel** covering everything operational — case-type templates, form templates, lab test mappings, the calendar/roster, the audit log, and the Round Interns directory. Account management (approving/creating/removing accounts, granting capabilities) stays **admin-only**. Since residents now hold that power directly, the audit log below is the accountability mechanism: every change is attributed and visible, not just trusted. Admins additionally hold full clinical write rights (open cases, document patients) as a management/backstop capability — they are never shift-key gated, and only interns are prompted for the ward key.
 
 ### 7.1 `AuditLog`
 ```
@@ -499,7 +523,7 @@ The **"who's on shift now"** card — a single glanceable card at the top of the
 10. **Emergency module** — assessment entry, refer-out vs admit branch.
 11. **DischargeForm** + follow-up-pending status logic.
 12. **OperationForm** — build against your actual paper once sent; draft schema above as placeholder.
-13. **Shift rostering** — `DayTypeCalendar` admin screen, `RoleSlotDefinition` seed data, `ShiftAssignment` entry screen, "who's on today" dashboard card.
+13. **Shift rostering** — `DayTypeCalendar` admin screen, `RoleSlotDefinition` seed data, `ShiftAssignment` entry screen, "who's on today" dashboard card, bulk generation, Wardyati Excel import/export, mark-intern-absent (spec 6.2).
 14. **Generic FormTemplate/FormRecord engine** — for anything not covered by a dedicated collection.
 15. **Offline queue** — IndexedDB-backed submission queue with sync-on-reconnect.
 16. **Polish pass** — UI/UX direction from section 8 applied consistently, empty states, loading states, error states.
@@ -512,16 +536,16 @@ Two separate ways an account can come into existence, with different rules for e
 
 ### 10.1 Self-registration (needs approval)
 1. Someone fills a "Request access" form (name, email, number, role requested) → creates a `User` with `status: "pending-approval"`, `accountType: "self-registered"`.
-2. A **Pending approvals** queue is visible to Resident + Admin — they see the request, and approve or reject.
+2. A **Pending approvals** queue is visible to Admin — they see the request, and approve or reject. (Account management is admin-only, spec 7.)
 3. On approval: `status → "active"`, `approvedBy`/`approvedAt` set, `expiresAt` stays `null`.
-4. **This account never expires on its own.** It stays active indefinitely until a resident or admin explicitly removes it (`status → "removed"`) — i.e. "kicked."
+4. **This account never expires on its own.** It stays active indefinitely until an admin explicitly removes it (`status → "removed"`) — i.e. "kicked."
 5. Every approval and removal is captured in `AuditLog` (section 7.1) — who approved whom, who removed whom, and when.
 
 ### 10.2 Rotation bulk-import (Excel round-trip)
 For onboarding a whole rotation of interns at once, rather than one-by-one self-registration:
 
-1. **Download template** — a button generates a blank `.xlsx` with columns: `Name | Email | Number`.
-2. Resident/admin fills it offline with everyone in the current rotation, then **uploads** it back.
+1. **Download template** — a button generates a blank `.xlsx` with columns: `Name | Email | Number`. Available to Resident + Admin.
+2. Resident/Admin fills it offline with everyone in the current rotation, then **uploads** it back (also Resident + Admin).
 3. Server parses each row and, per row:
    - **Phone is the identity key (spec 3.1).** If a row's `number` (or email, as fallback) already matches an existing `User`, the row is reported as **existing** and no duplicate is created — a person only ever has one account no matter how many rotations they pass through.
    - Otherwise creates a `User` with `role: "intern"`, `accountType: "bulk-generated"`, `status: "active"`, `mustChangePassword: true`, `phone` set to the normalized row number.
@@ -549,15 +573,95 @@ For onboarding a whole rotation of interns at once, rather than one-by-one self-
 ### 10.3 Summary of lifecycle rules
 | Account origin | Requires approval? | Expires? |
 |---|---|---|
-| Self-registered | Yes (Resident/Admin) | Never — lasts until manually removed |
+| Self-registered | Yes (Admin) | Never — lasts until manually removed |
 | Rotation bulk-import (Excel) | No — active immediately | Yes — 50 days from creation |
 
 ---
 
-## 11. Open Items (need your input before or during build)
+## 11. Capabilities, Intern Profiles & the Round Interns Directory
+
+Most interns use the app with only their base role permissions. Two extras exist on top of the role system: per-intern capability grants, and the intern-facing review records. This section defines both (spec §11.7 and §11.8).
+
+### 11.1 Capability model
+`grantedCapabilities` on the `User` (spec 3.1) is an opt-in array of named capabilities an admin grants to a specific intern. A capability extends what that intern may do beyond their role's default row in the matrix (spec 7). The known capability names:
+
+- `bypass-shift-key` — lets an intern submit ward/clinic/emergency forms **without** entering the current shift key (normally interns are prompted for it).
+- `manage-roster` — lets an intern generate/fill/edit shift assignments the way residents do.
+- `finalize-discharge` — lets an intern complete a discharge form.
+- `complete-operation-form` — lets an intern complete/edit an operation form.
+- `approve-followups` — lets an intern approve/close follow-up cases.
+- Additional clinical or form-related capabilities can be added without schema changes.
+
+### 11.2 Granting & revoking
+Capabilities are granted/revoked per intern by an **admin** from the intern's profile (the full desired set is sent on each save — set semantics, not per-capability toggles). Every change is written to `AuditLog` with the before/after set (section 7.1).
+
+### 11.3 Immediate effect
+Capability grants take effect **immediately** — the current session is re-validated against the database on each request (e.g. `/api/auth/me` reads the user fresh from the DB), so an intern does not need to log out and back in after a grant or revocation.
+
+### 11.4 Guarding
+Every write endpoint checks the caller's role **and** capability (where a capability applies) and returns 403 when missing. The UI hides actions the caller can't perform rather than showing them and failing.
+
+### 11.5 Shift key gating
+Interns (and only interns) are prompted for the current shift key before submitting ward/clinic/emergency forms, unless they hold `bypass-shift-key`. Residents and admins are never prompted (spec 7).
+
+### 11.6 Attendance record
+Attendance is tracked per intern per shift date: `present`, `absent` (with reason — written automatically when a resident/admin marks them absent per spec 6.2), or `late`/unexcused variants as the department defines. A manual `present` record for a date is authoritative and is never overwritten by an absent-mark.
+
+### 11.7 Intern profile
+Every intern's profile page shows: full account data, complete **roster/shift history** (each date, the slot label, the resolved day type, shift time, and any absence entry), the **attendance record** (including marked-absent entries with reasons), and the intern's own **audit-log entries**. Resident + Admin can open any intern's profile.
+
+### 11.8 Round Interns directory
+A **Round Interns** directory lists every active intern (`role: "intern"`, `status: "active"` — self-registered and bulk-imported alike), sorted by name, each row linking to the intern's profile (spec 11.7). Resident + Admin. It is also the home of the rotation Excel import (spec 6.1 / 10.2) for residents, keeping account-management screens admin-only.
+
+---
+
+## 12. Shift Key & Capability-Gated Features
+
+The ward key concept is a lightweight per-shift passcode that gates intern form submissions (spec 11.5):
+
+- The **ShiftKeyProvider** holds the current shift key client-side; the dashboard's Shift Key card shows today's key to whoever is on shift and lets an intern with `bypass-shift-key` proceed without it.
+- Interns who don't hold `bypass-shift-key` must enter the key shown by the on-duty resident before a ward/clinic/emergency submission is accepted.
+- Residents and admins never see the prompt; their role supersedes the key.
+- The key rotates with the active shift (the 08:00 boundary, spec 6).
+- Capability checks are enforced server-side on the write endpoints, independent of what the UI shows (spec 11.4).
+
+---
+
+## 13. Offline-First Behavior
+
+The app must tolerate patchy connectivity (spec 1.5, 2):
+
+- **IndexedDB submission queue:** writes issued while offline are queued locally with the request body; the queue flushes to the API when connectivity returns, in order.
+- **Reads and auth are never queued:** session checks, lookups and data reads fail fast with a clear offline state rather than being silently buffered.
+- **Offline banner:** a small persistent banner shows while something is queued locally vs. confirmed saved (spec 8), so a user never wonders whether their data actually went through.
+- **Service worker + PWA:** the app installs as a PWA and serves its shell from the local service worker; the roster, dashboard and form screens work from cache where safe.
+- **Content that must always be available offline** (e.g. the onboarding tour steps, spec 14) is bundled in the app, not fetched at runtime.
+
+---
+
+## 14. Onboarding Tour
+
+On **first login**, the app opens a guided onboarding tour instead of leaving the user to figure out the UI alone. The tour is role-aware, navigates the real pages, and can be relaunched any time.
+
+### 14.1 What it is
+- **Three tours**, one per role — Intern, Resident, Admin — each walking the screens that matter for that role (Intern: dashboard → shift key → search → ward → clinic → emergency → lab import → follow-up queue; Resident: shift-key generation, roster bulk-generate / day-type calendar / Wardyati import / mark-absent, discharge + operation forms + referral review, Round Interns, audit log; Admin: the resident core plus user approvals, account creation, capability grants, case-type templates, form templates, lab mappings, audit log).
+- **Capability-aware:** an intern who holds `bypass-shift-key` sees wording that says they can submit without the key; one who doesn't is told to use the key shown on the dashboard. Extra steps are inserted when the intern holds additional capabilities.
+- **Navigates the real app:** each step points at an actual element on a real page and moves the user there (`router` navigation + a spotlight on the target, with a fallback centered card when the step targets something inside an encounter form).
+
+### 14.2 Offline-capable
+The tour's step content is **bundled in the app** — no runtime fetch — so it works on first load with no connectivity. A single lightweight session read (`/api/auth/me`) supplies `role`, `grantedCapabilities` and `tourCompletedAt`; if that call fails, a small cached copy of the profile is used.
+
+### 14.3 Completion & relaunch
+- Finishing or skipping the tour writes `tourCompletedAt` on the `User` (spec 3.1) and sets a local flag, so it does not auto-open again.
+- A persistent **"Tour guide"** button in the top bar relaunches the tour at any time for the signed-in user's role.
+- **Skip** is always available at every step; skipping marks the tour complete so it never nags.
+
+---
+
+## 15. Open Items (need your input before or during build)
 
 - Operation form — actual paper needed to replace the draft schema in 3.10.
 - Hepatic diet instruction — left free-text; let me know if there's a fixed protocol.
 - Any additional case types beyond Hernia/Biliary/Hepatic planned for the near term (Appendix, Trauma, etc.) — not required for launch, but good to know if `CaseTypeTemplate` needs anything beyond what's designed.
-- Confirm whether the lab PDF's "Patient Code" is the same identifier as the department's own medical number, or a separate hospital-lab-system code (affects the `LabImport` matching logic in 3.13a).
-- Should residents also be able to approve/remove accounts (section 10.1), or is that admin-only? (Everything else about registration is specified either way — this only affects one permission row.)
+- Confirm whether self-booking should be enabled for interns at launch, or remain a resident/admin-only fill workflow for now (schema supports it either way, spec 6.1).
+- Confirm the exact capability list for interns (spec 11.1) — which capabilities beyond `bypass-shift-key` should be granted by default, if any.
