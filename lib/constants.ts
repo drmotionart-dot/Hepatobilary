@@ -1,7 +1,14 @@
 import type { CaseType, DayType, LabCategory } from "@/lib/models/types";
 
+// Central brand strings (were previously hardcoded in layout/manifest/AppShell).
+export const DEPARTMENT_NAME = "HPB Department";
+export const APP_NAME = "HPB";
+
 // Shift model (spec §6): a 24-hour shift starts and ends at 08:00 local time.
 export const SHIFT_START_HOUR = 8;
+
+// Faded guide examples shown in name text boxes (both script styles).
+export const NAME_PLACEHOLDER = "Abdelrahman / Nour";
 
 // Calendar date key (YYYY-MM-DD) in LOCAL time — matches how roster days are
 // keyed (dates are stored at local midnight and must never be sliced in UTC).

@@ -134,7 +134,7 @@ export default function NewCaseForm() {
             </div>
             <div className="col-span-2">
               <Label>Full name *</Label>
-              <Input dir="auto" value={fullName} onChange={(e) => setFullName(e.target.value)} required />
+              <Input dir="auto" value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="Abdelrahman / Nour" required />
             </div>
             <div>
               <Label>Age *</Label>

@@ -8,6 +8,12 @@
   }
 }
 
+input::placeholder,
+textarea::placeholder {
+  color: rgb(var(--ink-muted));
+  opacity: 1;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { requireSession } from "@/lib/api";
 import TopBar from "@/components/TopBar";
 import MobileNav from "@/components/MobileNav";
+import { DEPARTMENT_NAME } from "@/lib/constants";
 
 const NAV = [
   { href: "/dashboard", label: "Dashboard" },
@@ -30,7 +31,7 @@ export default async function AppShell({ children }: { children: React.ReactNode
       <div className="flex flex-1">
         {/* Desktop sidebar */}
         <aside className="hidden md:flex w-56 flex-col border-r border-border bg-surface p-4 print:hidden">
-          <div className="mb-8 px-2 text-lg font-semibold text-primary">HPB Department</div>
+          <div className="mb-8 px-2 text-lg font-semibold text-primary">{DEPARTMENT_NAME}</div>
           <nav className="flex flex-col gap-1">
             {NAV.map((item) => (
               <Link

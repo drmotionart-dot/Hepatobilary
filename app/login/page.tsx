@@ -7,6 +7,7 @@ import Button from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
 import { apiFetch, setToken } from "@/lib/client-api";
+import { DEPARTMENT_NAME } from "@/lib/constants";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -47,7 +48,7 @@ export default function LoginPage() {
   return (
     <main className="min-h-screen flex items-center justify-center bg-bg px-4">
       <div className="w-full max-w-sm rounded-2xl bg-surface p-6 shadow-sm border border-border">
-        <h1 className="text-lg font-semibold text-primary mb-1">HPB Department</h1>
+        <h1 className="text-lg font-semibold text-primary mb-1">{DEPARTMENT_NAME}</h1>
         <p className="text-sm text-muted mb-6">Sign in to continue.</p>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-3">

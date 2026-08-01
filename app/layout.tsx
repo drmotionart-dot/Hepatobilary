@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import Script from "next/script";
 import OfflineQueueBanner from "@/components/OfflineQueueBanner";
 import RegisterSW from "@/components/RegisterSW";
+import { DEPARTMENT_NAME } from "@/lib/constants";
 // Self-hosted IBM Plex family (fontsource) so builds don't depend on Google
 // Fonts at build time. Same families as before: sans + arabic + mono.
 import "@fontsource/ibm-plex-sans/400.css";
@@ -17,7 +18,7 @@ import "@fontsource/ibm-plex-mono/500.css";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "HPB Department",
+  title: DEPARTMENT_NAME,
   description: "Hepatobiliary Surgery Department — documentation, ward, clinic, emergency, and roster",
   manifest: "/manifest.webmanifest",
   icons: {

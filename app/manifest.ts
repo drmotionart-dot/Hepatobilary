@@ -1,11 +1,12 @@
 import type { MetadataRoute } from "next";
+import { DEPARTMENT_NAME, APP_NAME } from "@/lib/constants";
 
 // Installable PWA manifest (spec §2: "One codebase serves web + installable PWA").
 // Served by Next.js at /manifest.webmanifest from this route.
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "HPB Department",
-    short_name: "HPB",
+    name: DEPARTMENT_NAME,
+    short_name: APP_NAME,
     description:
       "Hepatobiliary Surgery Department — documentation, ward, clinic, emergency, and roster",
     start_url: "/dashboard",

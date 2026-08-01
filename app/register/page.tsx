@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
 import { Select } from "@/components/ui/Select";
 import { apiFetch } from "@/lib/client-api";
+import { NAME_PLACEHOLDER } from "@/lib/constants";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -53,7 +54,7 @@ export default function RegisterPage() {
         <form onSubmit={handleSubmit} className="flex flex-col gap-3">
           <div>
             <Label htmlFor="fullName">Full name</Label>
-            <Input id="fullName" dir="auto" value={fullName} onChange={(e) => setFullName(e.target.value)} required />
+            <Input id="fullName" dir="auto" value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder={NAME_PLACEHOLDER} required />
           </div>
           <div>
             <Label htmlFor="email">Email</Label>

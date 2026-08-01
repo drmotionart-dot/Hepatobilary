@@ -102,7 +102,7 @@ export default function ReviewQueue({ imports }: { imports: any[] }) {
                 </div>
                 <div>
                   <Label>Full name (only if creating a new patient)</Label>
-                  <Input dir="auto" value={fullName} onChange={(e) => setFullName(e.target.value)} />
+                  <Input dir="auto" value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="Abdelrahman / Nour" />
                 </div>
               </div>
               {error && <p className="text-xs text-danger">{error}</p>}

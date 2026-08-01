@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { apiFetch, clearToken } from "@/lib/client-api";
+import { APP_NAME } from "@/lib/constants";
 
 type UserInfo = { name?: string; email?: string; role: string };
 type PatientHit = { _id: string; medicalNumber: string; fullName: string; age: number; sex: string };
@@ -94,7 +95,7 @@ export default function TopBar({ user }: { user: UserInfo | null }) {
           href="/dashboard"
           className="text-base font-semibold text-primary md:hidden"
         >
-          HPB
+          {APP_NAME}
         </Link>
 
         <div ref={boxRef} className="relative ml-auto flex-1 max-w-xs sm:max-w-sm">
