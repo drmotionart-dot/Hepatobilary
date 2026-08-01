@@ -52,7 +52,7 @@ export default function AuditLogFilters({ initial }: { initial: Filters }) {
   }
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 items-end p-4 border-b border-border">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 items-end p-4 border-b border-border">
       <div>
         <Label>Collection</Label>
         <Select value={collection} onChange={(e) => setCollection(e.target.value)}>
@@ -88,7 +88,7 @@ export default function AuditLogFilters({ initial }: { initial: Filters }) {
         <Label>To</Label>
         <Input type="date" value={to} onChange={(e) => setTo(e.target.value)} />
       </div>
-      <div className="col-span-2 sm:col-span-3 lg:col-span-5 flex gap-2">
+      <div className="col-span-1 sm:col-span-2 lg:col-span-5 flex gap-2">
         <Button size="sm" onClick={apply}>Apply filters</Button>
         <Button size="sm" variant="ghost" onClick={reset}>Reset</Button>
       </div>

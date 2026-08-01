@@ -41,7 +41,7 @@ function resizeImage(file: File): Promise<string> {
   });
 }
 
-export default function ReferralReview({ referral }: { referral: ReferralConsult }) {
+export default function ReferralReview({ referral, role }: { referral: ReferralConsult; role: string }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [expanded, setExpanded] = useState(false);
@@ -49,6 +49,10 @@ export default function ReferralReview({ referral }: { referral: ReferralConsult
   const [photo, setPhoto] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  // Reviewing a consult (PATCH /api/referral-consults/[id]) is resident/admin
+  // only (§7) — interns can file referrals but not close them.
+  const canReview = role === "resident" || role === "admin";
 
   async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -111,11 +115,11 @@ export default function ReferralReview({ referral }: { referral: ReferralConsult
   }
 
   if (!open) {
-    return (
+    return canReview ? (
       <div className="mt-2">
         <Button size="sm" variant="secondary" onClick={() => setOpen(true)}>Mark done</Button>
       </div>
-    );
+    ) : null;
   }
 
   return (

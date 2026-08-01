@@ -161,12 +161,12 @@ export default function RosterImportCard() {
     <div className="flex flex-col gap-5">
       <Card title="Rotation roster import / export (Wardyati)">
         <form onSubmit={importRoster} className="flex flex-wrap items-end gap-3">
-          <div className="flex-1 min-w-40">
+          <div className="flex-1 min-w-0">
             <input
               type="file"
               accept=".xlsx,.xls"
               onChange={(e) => setFile(e.target.files?.[0] || null)}
-              className="text-sm"
+              className="w-full max-w-full text-sm"
             />
             <p className="text-xs text-muted mt-1">
               One row per day, one column per shift slot; cells hold bulleted &quot;name + phone&quot; pairs.
@@ -262,9 +262,9 @@ export default function RosterImportCard() {
                           {formatDate(row.date)} · {targetLabel(row.target)}{row.phone ? ` · ${row.phone}` : ""}
                         </p>
                       </div>
-                      <div className="flex items-center gap-1.5 shrink-0">
+                      <div className="flex flex-wrap items-center justify-end gap-1.5">
                         <select
-                          className="rounded-lg border border-border bg-surface px-2 py-1.5 text-sm"
+                          className="rounded-lg border border-border bg-surface px-2 py-1.5 text-sm w-full sm:w-48"
                           defaultValue=""
                           onChange={(e) => {
                             if (e.target.value) resolveRow(imp._id, row.rowIndex, e.target.value);

@@ -13,8 +13,11 @@ import Button from "@/components/ui/Button";
 
 type CurrentKey = { key: string; generatedAt?: string; generatedBy?: { fullName?: string } | null };
 
-export default function ShiftKeyCard() {
-  const role = getRole();
+export default function ShiftKeyCard({ role: roleProp }: { role?: string }) {
+  // roleProp comes from the server component so SSR and hydration agree; the
+  // getRole() fallback keeps it working if the prop is ever omitted.
+  const clientRole = getRole();
+  const role = roleProp ?? clientRole;
   const { cachedKey, saveKey, requestKey } = useShiftKey();
   const [current, setCurrent] = useState<CurrentKey | null>(null);
   const [internCanGenerate, setInternCanGenerate] = useState(false);
@@ -82,8 +85,8 @@ export default function ShiftKeyCard() {
   return (
     <Card title="Ward shift key" className="flex flex-col gap-3">
       {error && <p className="text-xs text-danger">{error}</p>}
-      <div className="flex items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-wrap items-center gap-3">
           <span className="rounded-lg border border-primary/20 bg-primary/5 px-4 py-2 font-mono text-2xl font-semibold tracking-[0.2em] text-primary">
             {current?.key ?? "——"}
           </span>
@@ -94,7 +97,7 @@ export default function ShiftKeyCard() {
             </div>
           )}
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Button size="sm" variant="secondary" onClick={copy} disabled={!current?.key}>
             {copied ? "Copied" : "Copy"}
           </Button>

@@ -93,12 +93,12 @@ export default function UsersManager({
       {canImport && (
       <Card title="Import rotation (Excel)">
         <form onSubmit={importRotation} className="flex flex-wrap items-end gap-3">
-          <div className="flex-1 min-w-40">
+          <div className="flex-1 min-w-0">
             <input
               type="file"
               accept=".xlsx,.xls,.csv"
               onChange={(e) => setFile(e.target.files?.[0] || null)}
-              className="text-sm"
+              className="w-full max-w-full text-sm"
             />
             <p className="text-xs text-muted mt-1">
               Columns: name, email, number. Creates intern accounts, 50-day expiry, forced password change.
@@ -151,12 +151,12 @@ export default function UsersManager({
         <Card title={`Pending approvals (${pending.length})`}>
           <ul className="flex flex-col divide-y divide-border">
             {pending.map((u) => (
-              <li key={u._id} className="py-2.5 flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium" dir="auto">{u.fullName}</p>
-                  <p className="text-xs text-muted">{u.email} · {u.role} · requested {formatDate(u.createdAt)}</p>
+              <li key={u._id} className="py-2.5 flex flex-wrap items-center justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="text-sm font-medium truncate" dir="auto">{u.fullName}</p>
+                  <p className="text-xs text-muted truncate">{u.email} · {u.role} · requested {formatDate(u.createdAt)}</p>
                 </div>
-                <div className="flex items-center gap-1.5 shrink-0">
+                <div className="flex flex-wrap items-center gap-1.5 shrink-0">
                   <Button size="sm" onClick={() => act(u._id, "approve")}>Approve</Button>
                   <Button size="sm" variant="secondary" onClick={() => act(u._id, "reject")}>Reject</Button>
                 </div>
@@ -173,7 +173,7 @@ export default function UsersManager({
         ) : (
           <ul className="flex flex-col divide-y divide-border">
             {users.map((u) => (
-              <li key={u._id} className="py-2.5 flex items-center justify-between gap-2">
+              <li key={u._id} className="py-2.5 flex flex-wrap items-center justify-between gap-2">
                 <div className="min-w-0">
                   <Link href={`/admin/users/${u._id}`} className="text-sm font-medium hover:text-primary" dir="auto">
                     {u.fullName}
@@ -191,7 +191,7 @@ export default function UsersManager({
                     </div>
                   )}
                 </div>
-                <div className="flex items-center gap-1.5 shrink-0">
+                <div className="flex flex-wrap items-center gap-1.5 shrink-0">
                   <Badge tone={statusTone(u.status) as any}>{u.status}</Badge>
                   <Link href={`/admin/users/${u._id}`}>
                     <Button size="sm" variant="secondary">View</Button>

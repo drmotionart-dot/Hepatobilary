@@ -25,7 +25,7 @@ export default async function EmergencyPage() {
         <PageHeader title="Emergency" subtitle="New assessments and last 24h" />
 
         <div className="flex flex-col gap-5">
-          <EmergencyAssessmentForm />
+          {session.role !== "admin" && <EmergencyAssessmentForm />}
 
           <Card title={`Last 24h (${encounters.length})`}>
             {encounters.length === 0 ? (
@@ -35,15 +35,15 @@ export default async function EmergencyPage() {
                 {encounters.map((e) => {
                   const p = e.patient;
                   return (
-                    <li key={e._id!.toString()} className="py-2.5 flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-medium" dir="auto">{p?.fullName || "Unknown"}</p>
+                    <li key={e._id!.toString()} className="py-2.5 flex flex-wrap items-center justify-between gap-2">
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium truncate" dir="auto">{p?.fullName || "Unknown"}</p>
                         <p className="text-xs text-muted">
                           {p?.medicalNumber} · {formatDateTime(e.openedAt)}
                           {e.noteSummary ? ` · ${e.noteSummary}` : ""}
                         </p>
                       </div>
-                      <Badge tone={e.status === "active" ? "success" : "default"}>{e.status}</Badge>
+                      <Badge tone={e.status === "active" ? "success" : "default"} className="whitespace-nowrap">{e.status}</Badge>
                     </li>
                   );
                 })}

@@ -45,7 +45,7 @@ export default async function DashboardPage() {
       <div className="max-w-3xl mx-auto p-4 md:p-8 flex flex-col gap-6">
         <OnShiftCard dayType={dayType} activeShift={activeShift} people={people} serverNow={serverNow} shift={shift} />
 
-        <ShiftKeyCard />
+        <ShiftKeyCard role={session.role} />
 
         <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
           <Card className="!p-4">

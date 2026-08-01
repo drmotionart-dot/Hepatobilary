@@ -47,7 +47,7 @@ export default function CalendarCard({
               <span className={`text-xs font-medium ${isToday ? "text-primary" : ""}`}>
                 {Number(day.date.slice(8, 10))}
               </span>
-              <span className="absolute right-0.5 top-0.5 text-[9px] font-medium text-muted">
+              <span className="absolute right-0.5 top-0.5 hidden text-[9px] font-medium text-muted sm:block">
                 {DAY_TYPE_LABEL[day.dayType] || ""}
               </span>
               {day.assigned > 0 && (

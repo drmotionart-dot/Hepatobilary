@@ -8,6 +8,14 @@
   }
 }
 
+/* Safety net: no page-level horizontal scrollbar on phones. Individual
+   overflow strips (roster day picker, ward day strip, lab tables) opt back in
+   with overflow-x-auto on a dedicated wrapper. */
+html,
+body {
+  overflow-x: clip;
+}
+
 input::placeholder,
 textarea::placeholder {
   color: rgb(var(--ink-muted));

@@ -19,7 +19,7 @@ export default async function AdminUsersPage() {
         <UsersManager
           users={users}
           pending={users.filter((u) => u.status === "pending-approval")}
-          canImport={session.role === "admin"}
+          canImport={session.role === "admin" || session.role === "resident"}
           canCreate={session.role === "admin"}
         />
       </div>

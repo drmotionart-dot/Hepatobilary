@@ -61,14 +61,14 @@ export default function ReviewQueue({ imports }: { imports: any[] }) {
     <div className="flex flex-col gap-3">
       {imports.map((i) => (
         <Card key={i._id}>
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium">{i.sourceFileName}</p>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="min-w-0">
+              <p className="text-sm font-medium truncate">{i.sourceFileName}</p>
               <p className="text-xs text-muted mt-0.5">
                 Patient code <span className="font-semibold">{i.patientCode}</span> · {formatDateTime(i.importedAt)}
               </p>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2 shrink-0">
               <Button
                 size="sm"
                 variant="danger"

@@ -45,6 +45,9 @@ export default async function EncounterPage({ params }: { params: { id: string }
   // Discharge, follow-up close, and operation forms are resident-only (spec §7).
   const canEditOperation = session.role === "resident";
   const canManageStatus = session.role === "resident";
+  // Clinical documentation (notes, labs, imaging requests, referrals, treatment
+  // log, generic forms) is intern+resident per the §7 matrix — admin reads only.
+  const canDocument = session.role === "intern" || session.role === "resident";
 
   return (
     <AppShell>
@@ -75,9 +78,9 @@ export default async function EncounterPage({ params }: { params: { id: string }
               <ol className="flex flex-col gap-4 mb-4">
                 {notes.map((n) => (
                   <li key={n._id!.toString()} className="border-l-2 border-primary/20 pl-3">
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs font-semibold text-primary uppercase">{n.context}</span>
-                      <span className="text-xs text-muted">
+                    <div className="flex flex-wrap items-center justify-between gap-1 mb-1">
+                      <span className="text-xs font-semibold text-primary uppercase whitespace-nowrap">{n.context}</span>
+                      <span className="text-xs text-muted min-w-0">
                         {n.authorName || "Unknown"} · {formatDateTime(n.createdAt)}
                       </span>
                     </div>
@@ -136,19 +139,21 @@ export default async function EncounterPage({ params }: { params: { id: string }
                 ))}
               </ol>
             )}
-            <AddNoteForm encounterId={encounter._id!.toString()} caseType={encounter.caseType} patientAge={patient?.age ?? 0} />
+            {canDocument && (
+              <AddNoteForm encounterId={encounter._id!.toString()} caseType={encounter.caseType} patientAge={patient?.age ?? 0} />
+            )}
           </Card>
 
           {/* Lab panel */}
           <Card title="Lab results">
             <LabPanel results={labPanel?.results || []} presetTests={labPanel?.presetTests || []} />
-            <AddLabEntryForm encounterId={encounter._id!.toString()} />
+            {canDocument && <AddLabEntryForm encounterId={encounter._id!.toString()} />}
           </Card>
 
           {/* Imaging */}
           <Card title="Imaging requests">
-            <ImagingList imaging={imaging} canManage={session.role === "intern" || session.role === "resident"} />
-            <AddImagingForm encounterId={encounter._id!.toString()} />
+            <ImagingList imaging={imaging} canManage={canDocument} />
+            {canDocument && <AddImagingForm encounterId={encounter._id!.toString()} />}
           </Card>
 
           {/* Referrals */}
@@ -166,12 +171,12 @@ export default async function EncounterPage({ params }: { params: { id: string }
                       </div>
                       <Badge tone={r.status === "reviewed" ? "success" : "warning"}>{r.status}</Badge>
                     </div>
-                    <ReferralReview referral={r} />
+                    <ReferralReview referral={r} role={session.role} />
                   </li>
                 ))}
               </ul>
             )}
-            <AddReferralForm encounterId={encounter._id!.toString()} />
+            {canDocument && <AddReferralForm encounterId={encounter._id!.toString()} />}
           </Card>
 
           {/* Treatment log */}
@@ -191,7 +196,7 @@ export default async function EncounterPage({ params }: { params: { id: string }
                 ))}
               </ul>
             )}
-            <AddTreatmentForm encounterId={encounter._id!.toString()} />
+            {canDocument && <AddTreatmentForm encounterId={encounter._id!.toString()} />}
           </Card>
 
           {/* Operation */}
@@ -246,7 +251,7 @@ export default async function EncounterPage({ params }: { params: { id: string }
 
           {/* Generic forms */}
           <Card title="Generic forms">
-            <FormRecords encounterId={encounter._id!.toString()} />
+            <FormRecords encounterId={encounter._id!.toString()} canFill={canDocument} />
           </Card>
 
           {/* Discharge */}

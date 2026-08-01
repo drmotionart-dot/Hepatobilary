@@ -25,7 +25,7 @@ export default async function ClinicPage() {
         <PageHeader title="Clinic" subtitle="New cases and follow-up queue" />
 
         <div className="flex flex-col gap-5">
-          <NewCaseForm />
+          {session.role !== "admin" && <NewCaseForm />}
 
           <Card title={`Active cases (${activeCases.length})`}>
             {activeCases.length === 0 ? (
@@ -35,14 +35,14 @@ export default async function ClinicPage() {
                 {activeCases.map((e) => {
                   const p = e.patient;
                   return (
-                    <li key={e._id!.toString()} className="py-2.5 flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-medium" dir="auto">{p?.fullName || "Unknown"}</p>
+                    <li key={e._id!.toString()} className="py-2.5 flex flex-wrap items-center justify-between gap-2">
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium truncate" dir="auto">{p?.fullName || "Unknown"}</p>
                         <p className="text-xs text-muted">{p?.medicalNumber} · seen {formatDate(e.openedAt)}</p>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <Badge>{caseTypeDisplay(e.caseType, e.customCaseTypeLabel)}</Badge>
-                        <Link href={`/ward/${e._id}`} className="text-xs text-primary font-medium">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Badge className="max-w-[45vw] truncate">{caseTypeDisplay(e.caseType, e.customCaseTypeLabel)}</Badge>
+                        <Link href={`/ward/${e._id}`} className="text-xs text-primary font-medium whitespace-nowrap">
                           Open →
                         </Link>
                       </div>
@@ -61,14 +61,14 @@ export default async function ClinicPage() {
                 {followUps.map((e) => {
                   const p = e.patient;
                   return (
-                    <li key={e._id!.toString()} className="py-2.5 flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-medium" dir="auto">{p?.fullName || "Unknown"}</p>
+                    <li key={e._id!.toString()} className="py-2.5 flex flex-wrap items-center justify-between gap-2">
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium truncate" dir="auto">{p?.fullName || "Unknown"}</p>
                         <p className="text-xs text-muted">{p?.medicalNumber} · seen {formatDate(e.openedAt)}</p>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <Badge>{caseTypeDisplay(e.caseType, e.customCaseTypeLabel)}</Badge>
-                        <Link href={`/clinic/${e._id}`} className="text-xs text-primary font-medium">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Badge className="max-w-[45vw] truncate">{caseTypeDisplay(e.caseType, e.customCaseTypeLabel)}</Badge>
+                        <Link href={`/clinic/${e._id}`} className="text-xs text-primary font-medium whitespace-nowrap">
                           Open →
                         </Link>
                       </div>

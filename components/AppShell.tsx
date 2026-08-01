@@ -5,11 +5,11 @@ import SidebarNav from "@/components/SidebarNav";
 import { DEPARTMENT_NAME } from "@/lib/constants";
 
 const NAV = [
-  { href: "/dashboard", label: "Dashboard" },
+  { href: "/dashboard", label: "Home" },
   { href: "/ward", label: "Ward" },
   { href: "/clinic", label: "Clinic" },
   { href: "/emergency", label: "Emergency" },
-  { href: "/lab-import", label: "Lab import" },
+  { href: "/lab-import", label: "Labs" },
   { href: "/roster", label: "Roster" },
 ];
 
@@ -42,7 +42,7 @@ export default async function AppShell({ children }: { children: React.ReactNode
           {isResidentOrAbove && <SidebarNav items={adminItems} className="mt-4" />}
         </aside>
 
-        <main className="flex-1 pb-16 md:pb-0">{children}</main>
+        <main className="flex-1 min-w-0 pb-16 md:pb-0">{children}</main>
 
         {/* Mobile bottom tab bar */}
         <MobileNav items={NAV} extra={mobileExtra} className="print:hidden" />

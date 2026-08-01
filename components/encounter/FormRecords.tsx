@@ -59,7 +59,7 @@ function FieldInput({
   return <Input dir="auto" value={value} onChange={(e) => onChange(e.target.value)} />;
 }
 
-export default function FormRecords({ encounterId }: { encounterId: string }) {
+export default function FormRecords({ encounterId, canFill = true }: { encounterId: string; canFill?: boolean }) {
   const router = useRouter();
   const [templates, setTemplates] = useState<Template[]>([]);
   const [records, setRecords] = useState<RecordItem[]>([]);
@@ -149,7 +149,7 @@ export default function FormRecords({ encounterId }: { encounterId: string }) {
         )
       )}
 
-      {!selectedTemplate ? (
+      {canFill && (!selectedTemplate ? (
         <div className="flex flex-wrap items-center gap-2">
           <Select value={selected} onChange={(e) => pickTemplate(e.target.value)} className="flex-1 min-w-40">
             <option value="">Fill a generic form…</option>
@@ -177,7 +177,7 @@ export default function FormRecords({ encounterId }: { encounterId: string }) {
             <Button type="submit" size="sm" loading={loading}>{loading ? "Saving…" : "Save form"}</Button>
           </div>
         </form>
-      )}
+      ))}
     </div>
   );
 }

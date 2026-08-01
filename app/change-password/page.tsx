@@ -49,12 +49,12 @@ export default function ChangePasswordPage() {
       <div className="w-full max-w-sm rounded-2xl bg-surface p-6 shadow-sm border border-border">
         <h1 className="text-lg font-semibold text-primary mb-1">Change password</h1>
         <p className="text-sm text-muted mb-6">
-          Your temporary password has expired — set a new one to continue. (Minimum 8 characters)
+          Set a new password for your account. Minimum 8 characters.
         </p>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-3">
           <div>
-            <Label htmlFor="current">Current (temporary) password</Label>
+            <Label htmlFor="current">Current password</Label>
             <Input id="current" type="password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} required />
           </div>
           <div>

@@ -33,7 +33,7 @@ export default function OnShiftCard({
 
   return (
     <div className="rounded-2xl bg-surface p-5 shadow-sm border border-border">
-      <div className="flex items-center justify-between mb-3">
+      <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
         <div className="flex items-center gap-2">
           <span className="h-2.5 w-2.5 rounded-full bg-success animate-on-shift-pulse" aria-hidden />
           <h2 className="text-sm font-semibold text-ink/70">
@@ -53,18 +53,18 @@ export default function OnShiftCard({
             const end = minutesOf(p.endTime);
             const inWindow = start !== null && end !== null && nowMinutes >= start && nowMinutes < end;
             return (
-              <li key={p.name} className="flex items-center justify-between text-sm">
-                <span className="flex items-center gap-2">
+              <li key={p.name} className="flex flex-wrap items-center justify-between gap-1 text-sm">
+                <span className="flex min-w-0 items-center gap-2">
                   {start !== null && end !== null ? (
                     <span
                       aria-hidden
-                      className={`h-1.5 w-1.5 rounded-full ${inWindow ? "bg-success" : "bg-border"}`}
+                      className={`h-1.5 w-1.5 rounded-full shrink-0 ${inWindow ? "bg-success" : "bg-border"}`}
                       title={inWindow ? "On duty right now" : `Shift window ${p.startTime}–${p.endTime}`}
                     />
                   ) : null}
-                  <span className={`font-medium ${inWindow ? "text-ink" : ""}`} dir="auto">{p.name}</span>
+                  <span className={`font-medium truncate ${inWindow ? "text-ink" : ""}`} dir="auto">{p.name}</span>
                 </span>
-                <span className="text-muted">{p.category}</span>
+                <span className="text-muted whitespace-nowrap">{p.category}</span>
               </li>
             );
           })}

@@ -196,20 +196,22 @@ export default function RosterBoard({ users, slots, assignments, calendar, pools
       {error && <p className="text-xs text-danger">{error}</p>}
 
       {/* Day picker */}
-      <div className="grid grid-cols-7 gap-1.5">
-        {days.map((d) => (
-          <button
-            key={d.key}
-            onClick={() => selectDay(d.key)}
-            className={`rounded-lg border p-1.5 text-center text-xs ${selected === d.key ? "border-primary bg-primary/10" : "border-border"}`}
-          >
-            <span className="block font-medium">{d.date.toLocaleDateString("en-GB", { weekday: "short" })}</span>
-            <span className="block text-muted">{d.date.toLocaleDateString("en-GB", { day: "numeric", month: "short" })}</span>
-            <span className={`mt-0.5 block text-[10px] font-medium ${d.cal ? "text-primary" : "text-muted"}`}>
-              {d.cal?.dayType || "normal"}
-            </span>
-          </button>
-        ))}
+      <div className="overflow-x-auto">
+        <div className="grid grid-cols-7 gap-1.5 min-w-max">
+          {days.map((d) => (
+            <button
+              key={d.key}
+              onClick={() => selectDay(d.key)}
+              className={`rounded-lg border p-1.5 text-center text-xs ${selected === d.key ? "border-primary bg-primary/10" : "border-border"}`}
+            >
+              <span className="block font-medium whitespace-nowrap">{d.date.toLocaleDateString("en-GB", { weekday: "short" })}</span>
+              <span className="block text-muted whitespace-nowrap">{d.date.toLocaleDateString("en-GB", { day: "numeric", month: "short" })}</span>
+              <span className={`mt-0.5 block text-[10px] font-medium whitespace-nowrap ${d.cal ? "text-primary" : "text-muted"}`}>
+                {d.cal?.dayType || "normal"}
+              </span>
+            </button>
+          ))}
+        </div>
       </div>
 
       <Card title={`${selected} — ${dayType} day`}>
@@ -267,14 +269,14 @@ export default function RosterBoard({ users, slots, assignments, calendar, pools
               const a = assignmentMap.get(`${selected}:${s._id}`);
               const assigned = a?.userIds || [];
               return (
-                <li key={s._id} className="py-2.5 flex items-start justify-between gap-3">
+                <li key={s._id} className="py-2.5 flex flex-wrap items-start justify-between gap-3">
                   <div className="min-w-0">
                     <p className="text-sm font-medium truncate">{s.label}</p>
                     <p className="text-xs text-muted">
                       {s.personType} · {s.shiftType}{s.category !== "none" ? ` · ${s.category}` : ""}
                     </p>
                   </div>
-                  <div className="flex flex-col items-end gap-1.5 shrink-0">
+                  <div className="flex flex-col items-end gap-1.5 w-full sm:w-auto min-w-0">
                     {assigned.length > 0 && (
                       <div className="flex flex-wrap justify-end gap-1.5">
                         {assigned.map((id) => {
@@ -315,7 +317,7 @@ export default function RosterBoard({ users, slots, assignments, calendar, pools
                       <>
                         {candidatesFor(s).length > 0 && (
                           <Select
-                            className="w-44"
+                            className="w-full sm:w-44"
                             value=""
                             onChange={(e) => e.target.value && toggleUser(s._id, e.target.value)}
                           >

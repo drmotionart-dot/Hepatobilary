@@ -161,7 +161,7 @@ export default function AddNoteForm({ encounterId, caseType, patientAge = 0 }: {
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-3 border-t border-border pt-4 print:hidden">
-      <div className="flex gap-2">
+      <div className="flex flex-wrap gap-2">
         {CONTEXTS.map((c) => (
           <button
             key={c}

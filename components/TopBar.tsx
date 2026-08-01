@@ -20,11 +20,13 @@ const ROLE_LABELS: Record<string, string> = {
 export default function TopBar({ user }: { user: UserInfo | null }) {
   const router = useRouter();
   const boxRef = useRef<HTMLDivElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
 
   const [q, setQ] = useState("");
   const [results, setResults] = useState<PatientHit[]>([]);
   const [searching, setSearching] = useState(false);
   const [open, setOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const [navigating, setNavigating] = useState(false);
   const [dark, setDark] = useState(false);
 
@@ -35,6 +37,7 @@ export default function TopBar({ user }: { user: UserInfo | null }) {
   useEffect(() => {
     function onDoc(e: MouseEvent) {
       if (boxRef.current && !boxRef.current.contains(e.target as Node)) setOpen(false);
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setMenuOpen(false);
     }
     document.addEventListener("mousedown", onDoc);
     return () => document.removeEventListener("mousedown", onDoc);
@@ -99,7 +102,7 @@ export default function TopBar({ user }: { user: UserInfo | null }) {
           {APP_NAME}
         </Link>
 
-        <div ref={boxRef} className="relative ml-auto flex-1 max-w-xs sm:max-w-sm">
+        <div ref={boxRef} className="relative ml-auto flex-1 max-w-xs sm:max-w-sm min-w-0">
           <div className="relative">
             <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted">
               <IconSearch />
@@ -145,7 +148,9 @@ export default function TopBar({ user }: { user: UserInfo | null }) {
           )}
         </div>
 
-        <ShiftKeyBadge />
+        <div className="hidden sm:block">
+          <ShiftKeyBadge />
+        </div>
 
         <button
           type="button"
@@ -157,20 +162,53 @@ export default function TopBar({ user }: { user: UserInfo | null }) {
         </button>
 
         {user && (
-          <div className="hidden sm:flex flex-col items-end leading-tight">
-            <span className="text-sm font-medium">{user.name || "User"}</span>
-            <span className="text-xs text-muted">{ROLE_LABELS[user.role] || user.role}</span>
+          <div className="relative" ref={menuRef}>
+            <button
+              type="button"
+              onClick={() => setMenuOpen((v) => !v)}
+              aria-haspopup="menu"
+              aria-expanded={menuOpen}
+              title={user.name || "Account"}
+              className="inline-flex items-center gap-2 rounded-lg border border-border px-2.5 py-1.5 text-ink/80 transition-colors hover:bg-primary/10 hover:text-primary"
+            >
+              <span className="hidden sm:inline-flex flex-col items-end leading-tight">
+                <span className="text-sm font-medium">{user.name || "User"}</span>
+                <span className="text-xs text-muted">{ROLE_LABELS[user.role] || user.role}</span>
+              </span>
+              <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary sm:hidden">
+                {user.name ? user.name.trim().charAt(0).toUpperCase() : "U"}
+              </span>
+              <IconChevronDown className={menuOpen ? "rotate-180" : ""} />
+            </button>
+
+            {menuOpen && (
+              <div role="menu" className="absolute right-0 top-full z-30 mt-1 w-52 overflow-hidden rounded-lg border border-border bg-surface shadow-lg">
+                <div className="border-b border-border px-3 py-2 sm:hidden">
+                  <p className="text-sm font-medium leading-tight">{user.name || "User"}</p>
+                  <p className="text-xs text-muted">{ROLE_LABELS[user.role] || user.role}</p>
+                </div>
+                <Link
+                  href="/change-password"
+                  role="menuitem"
+                  onClick={() => setMenuOpen(false)}
+                  className="flex items-center gap-2 px-3 py-2.5 text-sm text-ink/90 transition-colors hover:bg-primary/10 hover:text-primary"
+                >
+                  <IconKey />
+                  Change password
+                </Link>
+                <button
+                  type="button"
+                  role="menuitem"
+                  onClick={handleSignOut}
+                  className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm text-ink/90 transition-colors hover:bg-danger/10 hover:text-danger"
+                >
+                  <IconLogout />
+                  Sign out
+                </button>
+              </div>
+            )}
           </div>
         )}
-
-        <button
-          type="button"
-          onClick={handleSignOut}
-          className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-sm font-medium text-ink/80 transition-colors hover:bg-danger/10 hover:text-danger"
-        >
-          <IconLogout />
-          <span className="hidden sm:inline">Sign out</span>
-        </button>
       </div>
     </header>
   );
@@ -208,6 +246,24 @@ function IconLogout() {
       <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
       <polyline points="16 17 21 12 16 7" />
       <line x1="21" x2="9" y1="12" y2="12" />
+    </svg>
+  );
+}
+
+function IconChevronDown({ className = "" }: { className?: string }) {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`transition-transform ${className}`}>
+      <polyline points="6 9 12 15 18 9" />
+    </svg>
+  );
+}
+
+function IconKey() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="7.5" cy="15.5" r="5.5" />
+      <path d="m21 2-9.6 9.6" />
+      <path d="m15.5 7.5 3 3L22 7l-3-3" />
     </svg>
   );
 }

@@ -65,8 +65,8 @@ export default function ImagingList({
             const expandedPanel = expanded[im._id!.toString()];
             return (
               <li key={im._id!.toString()} className="py-2.5">
-                <div className="flex items-start justify-between gap-3">
-                  <div>
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div className="min-w-0">
                     <p className="text-sm font-medium">
                       {im.modality}
                       {im.modalityDetail ? ` (${im.modalityDetail})` : ""} — {im.partToBeExamined}
@@ -85,9 +85,9 @@ export default function ImagingList({
                     )}
                   </div>
                   <div className="flex flex-col items-end gap-1 shrink-0">
-                    <Badge tone={statusTone(im.status) as any}>{im.status}</Badge>
+                    <Badge tone={statusTone(im.status) as any} className="whitespace-nowrap">{im.status}</Badge>
                     {canManage && (
-                      <div className="flex gap-1">
+                      <div className="flex flex-wrap justify-end gap-1">
                         <Button
                           variant="ghost"
                           size="sm"

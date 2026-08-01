@@ -127,12 +127,12 @@ export default function NewCaseForm() {
             <p className="text-muted text-xs mt-0.5">{selected.medicalNumber} — using existing patient record</p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 gap-3">
-            <div className="col-span-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="col-span-full sm:col-span-2">
               <Label>Medical number *</Label>
               <Input value={medicalNumber} onChange={(e) => setMedicalNumber(e.target.value)} required />
             </div>
-            <div className="col-span-2">
+            <div className="col-span-full sm:col-span-2">
               <Label>Full name *</Label>
               <Input dir="auto" value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="Abdelrahman / Nour" required />
             </div>

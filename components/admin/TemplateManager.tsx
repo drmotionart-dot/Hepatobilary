@@ -150,9 +150,9 @@ export default function TemplateManager({ templates }: { templates: Template[] }
         <ul className="flex flex-col divide-y divide-border">
           {templates.map((t) => (
             <li key={t._id} className="py-3">
-              <div className="flex items-center justify-between">
-                <p className="text-sm font-semibold">{t.name}</p>
-                <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <p className="text-sm font-semibold min-w-0">{t.name}</p>
+                <div className="flex flex-wrap items-center gap-2">
                   <Badge tone={t.active ? "success" : "default"}>{t.active ? "active" : "inactive"}</Badge>
                   <Button size="sm" variant="secondary" onClick={() => startEdit(t)}>Edit</Button>
                   <Button

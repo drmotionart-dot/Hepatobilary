@@ -56,14 +56,14 @@ function PatientCard({ e, accent }: { e: WardCard; accent: "male" | "female" }) 
   return (
     <Link href={`/ward/${e._id.toString()}`} className="block">
       <Card className={`border-l-4 ${border} hover:border-primary/40 transition-colors`}>
-        <div className="flex items-start justify-between gap-2">
+        <div className="flex flex-wrap items-start justify-between gap-2">
           <div className="min-w-0">
             <p className="text-sm font-semibold truncate" dir="auto">{p?.fullName || "Unknown"}</p>
             <p className="text-xs text-muted mt-0.5 font-mono">{p?.medicalNumber} · {p?.age} yrs</p>
           </div>
           <div className="flex items-center gap-2 shrink-0">
-            <Badge tone="info">{caseTypeDisplay(e.caseType, e.customCaseTypeLabel)}</Badge>
-            <span className="text-xs font-mono font-medium text-primary bg-primary/10 rounded-full px-2.5 py-0.5">
+            <Badge tone="info" className="max-w-[45vw] truncate">{caseTypeDisplay(e.caseType, e.customCaseTypeLabel)}</Badge>
+            <span className="text-xs font-mono font-medium text-primary bg-primary/10 rounded-full px-2.5 py-0.5 whitespace-nowrap">
               Day {e.dayOfStay}
             </span>
           </div>
@@ -132,11 +132,13 @@ export default async function WardPage() {
           title="Ward"
           subtitle="Day-by-day board — active inpatients by side"
           action={
-            <div className="print:hidden">
-              <Link href="/clinic">
-                <Button size="sm">+ Open new case (clinic)</Button>
-              </Link>
-            </div>
+            session.role !== "admin" ? (
+              <div className="print:hidden">
+                <Link href="/clinic">
+                  <Button size="sm">+ Open new case (clinic)</Button>
+                </Link>
+              </div>
+            ) : undefined
           }
         />
 

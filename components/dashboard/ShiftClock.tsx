@@ -30,12 +30,12 @@ export default function ShiftClock({ serverNow, shift }: { serverNow?: string; s
   const activeDate = shift?.activeDateKey ?? "";
 
   return (
-    <div className="mt-3 flex items-center justify-between gap-3 border-t border-border pt-3">
+    <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-border pt-3">
       <div>
-        <div className="font-mono text-lg leading-none tabular-nums">{fmtTime(now)}</div>
-        <div className="mt-1 text-xs text-muted">{fmtDate(now)}</div>
+        <div className="font-mono text-lg leading-none tabular-nums whitespace-nowrap">{fmtTime(now)}</div>
+        <div className="mt-1 text-xs text-muted whitespace-nowrap">{fmtDate(now)}</div>
       </div>
-      <div className="text-right text-xs">
+      <div className="text-right text-xs min-w-0">
         <div className="font-medium text-primary">
           Shift window {String(startHour).padStart(2, "0")}:00 → {String(startHour).padStart(2, "0")}:00
         </div>
