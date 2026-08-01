@@ -150,7 +150,7 @@ export default function AddOperationForm({
       <div>
         <Label>Assistants</Label>
         {users.length === 0 ? (
-          <p className="text-xs text-ink/50">No staff users available.</p>
+          <p className="text-xs text-muted">No staff users available.</p>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 mt-1">
             {users.map((u) => (

@@ -95,7 +95,7 @@ export default function UsersManager({
               onChange={(e) => setFile(e.target.files?.[0] || null)}
               className="text-sm"
             />
-            <p className="text-xs text-ink/50 mt-1">
+            <p className="text-xs text-muted mt-1">
               Columns: name, email, number. Creates intern accounts, 50-day expiry, forced password change.
             </p>
           </div>
@@ -117,7 +117,7 @@ export default function UsersManager({
               <p key={i} className="text-ink/70 font-mono">{r.name} — login: {r.generatedLoginId} — pw: {r.generatedPassword}</p>
             ))}
             {importResult.existing > 0 && (
-              <p className="text-ink/50">{(importResult.existing)} already had accounts (matched by phone/email) — skipped.</p>
+              <p className="text-muted">{(importResult.existing)} already had accounts (matched by phone/email) — skipped.</p>
             )}
           </div>
         )}
@@ -132,7 +132,7 @@ export default function UsersManager({
               <li key={u._id} className="py-2.5 flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium" dir="auto">{u.fullName}</p>
-                  <p className="text-xs text-ink/50">{u.email} · {u.role} · requested {formatDate(u.createdAt)}</p>
+                  <p className="text-xs text-muted">{u.email} · {u.role} · requested {formatDate(u.createdAt)}</p>
                 </div>
                 <Button size="sm" onClick={() => act(u._id, "approve")}>Approve</Button>
               </li>
@@ -144,14 +144,14 @@ export default function UsersManager({
       {/* All users */}
       <Card title={`All users (${users.length})`}>
         {users.length === 0 ? (
-          <p className="text-sm text-ink/50">No users yet.</p>
+          <p className="text-sm text-muted">No users yet.</p>
         ) : (
           <ul className="flex flex-col divide-y divide-border">
             {users.map((u) => (
               <li key={u._id} className="py-2.5 flex items-center justify-between gap-2">
                 <div className="min-w-0">
                   <p className="text-sm font-medium" dir="auto">{u.fullName}</p>
-                  <p className="text-xs text-ink/50 truncate">
+                  <p className="text-xs text-muted truncate">
                     {u.loginId || u.email} · {u.role} · {u.accountType}
                     {u.phone ? ` · ${u.phone}` : ""}
                     {u.expiresAt ? ` · expires ${formatDate(u.expiresAt)}` : ""}

@@ -45,7 +45,7 @@ function StatusDot({ color, label }: { color: string; label: string }) {
   return (
     <span className="inline-flex items-center gap-1.5">
       <span className={`w-2 h-2 rounded-full ${color}`} />
-      <span className="text-xs text-ink/60">{label}</span>
+      <span className="text-xs text-muted">{label}</span>
     </span>
   );
 }
@@ -59,7 +59,7 @@ function PatientCard({ e, accent }: { e: WardCard; accent: "male" | "female" }) 
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
             <p className="text-sm font-semibold truncate" dir="auto">{p?.fullName || "Unknown"}</p>
-            <p className="text-xs text-ink/50 mt-0.5 font-mono">{p?.medicalNumber} · {p?.age} yrs</p>
+            <p className="text-xs text-muted mt-0.5 font-mono">{p?.medicalNumber} · {p?.age} yrs</p>
           </div>
           <div className="flex items-center gap-2 shrink-0">
             <Badge tone="info">{caseTypeDisplay(e.caseType, e.customCaseTypeLabel)}</Badge>
@@ -76,7 +76,7 @@ function PatientCard({ e, accent }: { e: WardCard; accent: "male" | "female" }) 
               className={`w-1.5 h-1.5 rounded-full ${i === Math.min(e.dayOfStay, 14) - 1 ? "bg-primary" : "bg-primary/30"}`}
             />
           ))}
-          {e.dayOfStay > 14 && <span className="text-xs text-ink/40 ml-1 font-mono">+{e.dayOfStay - 14}</span>}
+          {e.dayOfStay > 14 && <span className="text-xs text-muted ml-1 font-mono">+{e.dayOfStay - 14}</span>}
         </div>
 
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-2">
@@ -84,12 +84,12 @@ function PatientCard({ e, accent }: { e: WardCard; accent: "male" | "female" }) 
           {e.imagingPending && <StatusDot color="bg-pending" label="Imaging pending" />}
           {e.readyForDischarge && <StatusDot color="bg-success" label="Ready for discharge" />}
           {!e.labsPending && !e.imagingPending && !e.readyForDischarge && (
-            <span className="text-xs text-ink/40">In progress</span>
+            <span className="text-xs text-muted">In progress</span>
           )}
         </div>
 
         {e.lastNote?.presentingLine && (
-          <p className="text-xs text-ink/60 mt-2 line-clamp-1" dir="auto">{e.lastNote.presentingLine}</p>
+          <p className="text-xs text-muted mt-2 line-clamp-1" dir="auto">{e.lastNote.presentingLine}</p>
         )}
       </Card>
     </Link>
@@ -102,7 +102,7 @@ function WardColumn({ title, color, cards, accent }: { title: string; color: str
       <div className="flex items-center gap-2 mb-3">
         <span className={`w-2 h-2 rounded-full ${color}`} />
         <h2 className="text-sm font-semibold uppercase tracking-wide text-ink/70">{title}</h2>
-        <span className="text-xs text-ink/40 font-mono">{cards.length}</span>
+        <span className="text-xs text-muted font-mono">{cards.length}</span>
       </div>
       <div className="flex flex-col gap-3">
         {cards.length === 0 ? (
@@ -150,14 +150,14 @@ export default async function WardPage() {
                   className={`flex flex-col items-center justify-center w-12 py-2 rounded-lg border text-center ${
                     isToday
                       ? "border-primary bg-primary text-white"
-                      : "border-border bg-surface text-ink/60"
+                      : "border-border bg-surface text-muted"
                   }`}
                 >
-                  <span className={`text-[10px] uppercase ${isToday ? "text-white/80" : "text-ink/40"}`}>
+                  <span className={`text-[10px] uppercase ${isToday ? "text-white/80" : "text-muted"}`}>
                     {d.toLocaleDateString("en-GB", { weekday: "short" })}
                   </span>
                   <span className="text-sm font-mono font-medium">{d.getDate()}</span>
-                  <span className={`text-[10px] ${isToday ? "text-white/80" : "text-ink/40"}`}>
+                  <span className={`text-[10px] ${isToday ? "text-white/80" : "text-muted"}`}>
                     {d.toLocaleDateString("en-GB", { month: "short" })}
                   </span>
                 </div>

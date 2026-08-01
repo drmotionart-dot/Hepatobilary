@@ -186,7 +186,7 @@ export default function RosterBoard({ users, slots, assignments, calendar, pools
           </div>
           <Button type="submit" size="sm">Generate</Button>
         </form>
-        <p className="text-xs text-ink/50 mt-2">
+        <p className="text-xs text-muted mt-2">
           Creates empty slots from the day-type calendar. Fill them here, or upload the rotation roster Excel above.
         </p>
       </Card>
@@ -204,8 +204,8 @@ export default function RosterBoard({ users, slots, assignments, calendar, pools
             className={`rounded-lg border p-1.5 text-center text-xs ${selected === d.key ? "border-primary bg-primary/10" : "border-border"}`}
           >
             <span className="block font-medium">{d.date.toLocaleDateString("en-GB", { weekday: "short" })}</span>
-            <span className="block text-ink/60">{d.date.toLocaleDateString("en-GB", { day: "numeric", month: "short" })}</span>
-            <span className={`mt-0.5 block text-[10px] font-medium ${d.cal ? "text-primary" : "text-ink/40"}`}>
+            <span className="block text-muted">{d.date.toLocaleDateString("en-GB", { day: "numeric", month: "short" })}</span>
+            <span className={`mt-0.5 block text-[10px] font-medium ${d.cal ? "text-primary" : "text-muted"}`}>
               {d.cal?.dayType || "normal"}
             </span>
           </button>
@@ -219,14 +219,14 @@ export default function RosterBoard({ users, slots, assignments, calendar, pools
             <button
               key={dt.value}
               onClick={() => setDayType(dt.value, selectedDay?.cal?.surgeryOverlay || false)}
-              className={`px-2.5 py-1 text-xs font-medium rounded-md ${dayType === dt.value ? "bg-primary text-white" : "bg-ink/5 text-ink/60"}`}
+              className={`px-2.5 py-1 text-xs font-medium rounded-md ${dayType === dt.value ? "bg-primary text-white" : "bg-ink/5 text-muted"}`}
             >
               {dt.label}
             </button>
           ))}
           <button
             onClick={() => setDayType(dayType, !(selectedDay?.cal?.surgeryOverlay || false))}
-            className={`px-2.5 py-1 text-xs font-medium rounded-md ${selectedDay?.cal?.surgeryOverlay ? "bg-warning/20 text-warning" : "bg-ink/5 text-ink/60"}`}
+            className={`px-2.5 py-1 text-xs font-medium rounded-md ${selectedDay?.cal?.surgeryOverlay ? "bg-warning/20 text-warning" : "bg-ink/5 text-muted"}`}
           >
             Surgery overlay: {selectedDay?.cal?.surgeryOverlay ? "ON" : "off"}
           </button>
@@ -237,7 +237,7 @@ export default function RosterBoard({ users, slots, assignments, calendar, pools
           <div className="mb-4 rounded-lg bg-primary/5 border border-primary/20 p-3">
             <p className="text-xs font-semibold text-primary mb-2">Emergency duty pool (from rotation import)</p>
             {dayPools.length === 0 ? (
-              <p className="text-xs text-ink/50">No pool imported for this day. Import the rotation roster, then fine-split Route/Ward/Typing below.</p>
+              <p className="text-xs text-muted">No pool imported for this day. Import the rotation roster, then fine-split Route/Ward/Typing below.</p>
             ) : (
               <ul className="flex flex-col gap-1">
                 {dayPools.map((p) => (
@@ -245,7 +245,7 @@ export default function RosterBoard({ users, slots, assignments, calendar, pools
                     <span className="font-medium capitalize">{p.shiftType} shift</span>
                     <span>
                       {p.userIds.length === 0 ? (
-                        <span className="text-ink/50">empty</span>
+                        <span className="text-muted">empty</span>
                       ) : (
                         p.userIds.map((id) => userById.get(id)?.fullName || "Unknown").join(", ")
                       )}
@@ -258,7 +258,7 @@ export default function RosterBoard({ users, slots, assignments, calendar, pools
         )}
 
         {visibleSlots.length === 0 ? (
-          <p className="text-sm text-ink/50">
+          <p className="text-sm text-muted">
             No slots defined for {dayType} days — bulk-generate first, or check RoleSlotDefinitions.
           </p>
         ) : (
@@ -270,7 +270,7 @@ export default function RosterBoard({ users, slots, assignments, calendar, pools
                 <li key={s._id} className="py-2.5 flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <p className="text-sm font-medium truncate">{s.label}</p>
-                    <p className="text-xs text-ink/50">
+                    <p className="text-xs text-muted">
                       {s.personType} · {s.shiftType}{s.category !== "none" ? ` · ${s.category}` : ""}
                     </p>
                   </div>
@@ -326,7 +326,7 @@ export default function RosterBoard({ users, slots, assignments, calendar, pools
                           </Select>
                         )}
                         {assigned.length === 0 && candidatesFor(s).length === 0 && (
-                          <span className="text-xs text-ink/40">No candidates</span>
+                          <span className="text-xs text-muted">No candidates</span>
                         )}
                       </>
                     )}

@@ -127,11 +127,11 @@ export default function TemplateManager({ templates }: { templates: any[] }) {
                   </Button>
                 </div>
               </div>
-              <p className="text-xs text-ink/50 mt-1">
+              <p className="text-xs text-muted mt-1">
                 {t.leChecklist?.length || 0} LE fields · {t.riskFactorChecklist?.length || 0} risk factors ·{" "}
                 {t.labPanelPreset?.length || 0} lab presets
               </p>
-              {t.dietInstruction && <p className="text-xs text-ink/50 mt-0.5">Diet: {t.dietInstruction}</p>}
+              {t.dietInstruction && <p className="text-xs text-muted mt-0.5">Diet: {t.dietInstruction}</p>}
             </li>
           ))}
         </ul>

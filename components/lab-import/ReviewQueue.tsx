@@ -54,7 +54,7 @@ export default function ReviewQueue({ imports }: { imports: any[] }) {
   }
 
   if (imports.length === 0) {
-    return <Card><p className="text-sm text-ink/50">No imports awaiting review.</p></Card>;
+    return <Card><p className="text-sm text-muted">No imports awaiting review.</p></Card>;
   }
 
   return (
@@ -64,7 +64,7 @@ export default function ReviewQueue({ imports }: { imports: any[] }) {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium">{i.sourceFileName}</p>
-              <p className="text-xs text-ink/50 mt-0.5">
+              <p className="text-xs text-muted mt-0.5">
                 Patient code <span className="font-semibold">{i.patientCode}</span> · {formatDateTime(i.importedAt)}
               </p>
             </div>
@@ -84,7 +84,7 @@ export default function ReviewQueue({ imports }: { imports: any[] }) {
           </div>
 
           {i.extractedTests?.length > 0 && (
-            <p className="text-xs text-ink/50 mt-2">
+            <p className="text-xs text-muted mt-2">
               {i.extractedTests.slice(0, 6).map((t: any) => t.externalTestName).join(", ")}
               {i.extractedTests.length > 6 ? ` +${i.extractedTests.length - 6} more` : ""}
             </p>
@@ -92,7 +92,7 @@ export default function ReviewQueue({ imports }: { imports: any[] }) {
 
           {expanded === i._id && (
             <div className="mt-4 flex flex-col gap-3 border-t border-border pt-4">
-              <p className="text-xs text-ink/60">
+              <p className="text-xs text-muted">
                 Link this import to an existing patient by medical number, or create a new patient record.
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

@@ -106,7 +106,7 @@ export default function AddNoteForm({ encounterId, caseType, patientAge = 0 }: {
             key={c}
             type="button"
             onClick={() => setContext(c)}
-            className={`px-2.5 py-1 text-xs font-medium rounded-md capitalize ${context === c ? "bg-primary text-white" : "bg-ink/5 text-ink/60"}`}
+            className={`px-2.5 py-1 text-xs font-medium rounded-md capitalize ${context === c ? "bg-primary text-white" : "bg-ink/5 text-muted"}`}
           >
             {c.replace("-", " ")}
           </button>
@@ -141,17 +141,17 @@ export default function AddNoteForm({ encounterId, caseType, patientAge = 0 }: {
         <label className="flex items-center gap-2 text-sm">
           <input type="checkbox" checked={ecgRequired} onChange={(e) => setEcgRequired(e.target.checked)} />
           <span>ECG required</span>
-          {patientAge > 40 && <span className="text-xs text-ink/40">(auto — age {patientAge})</span>}
+          {patientAge > 40 && <span className="text-xs text-muted">(auto — age {patientAge})</span>}
         </label>
         <label className="flex items-center gap-2 text-sm">
           <input type="checkbox" checked={echoRequired} onChange={(e) => setEchoRequired(e.target.checked)} />
           <span>Echo required</span>
-          {patientAge > 60 && <span className="text-xs text-ink/40">(auto — age {patientAge})</span>}
+          {patientAge > 60 && <span className="text-xs text-muted">(auto — age {patientAge})</span>}
         </label>
         <label className="flex items-center gap-2 text-sm">
           <input type="checkbox" checked={smoker} onChange={(e) => setSmoker(e.target.checked)} />
           <span>Smoker</span>
-          {smoker && <span className="text-xs text-ink/40">(adds Atrovent + Pulmicort)</span>}
+          {smoker && <span className="text-xs text-muted">(adds Atrovent + Pulmicort)</span>}
         </label>
       </div>
 

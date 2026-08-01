@@ -43,10 +43,10 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-bg px-4">
+    <main className="min-h-screen flex items-center justify-center bg-bg px-4">
       <div className="w-full max-w-sm rounded-2xl bg-surface p-6 shadow-sm border border-border">
         <h1 className="text-lg font-semibold text-primary mb-1">Request access</h1>
-        <p className="text-sm text-ink/60 mb-6">
+        <p className="text-sm text-muted mb-6">
           Your account stays inactive until an admin approves it.
         </p>
 
@@ -62,7 +62,7 @@ export default function RegisterPage() {
           <div>
             <Label htmlFor="phone">Phone (optional)</Label>
             <Input id="phone" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} />
-            <p className="text-[11px] text-ink/50 mt-1">Used to match your account to roster imports automatically.</p>
+            <p className="text-[11px] text-muted mt-1">Used to match your account to roster imports automatically.</p>
           </div>
           <div>
             <Label htmlFor="password">Password</Label>
@@ -84,10 +84,10 @@ export default function RegisterPage() {
           </Button>
         </form>
 
-        <Link href="/login" className="mt-4 inline-block text-xs text-ink/50 hover:text-ink/80">
+        <Link href="/login" className="mt-4 inline-block text-xs text-muted hover:text-ink/80">
           Back to sign in
         </Link>
       </div>
-    </div>
+    </main>
   );
 }

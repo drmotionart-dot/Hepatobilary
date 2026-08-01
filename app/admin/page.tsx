@@ -26,7 +26,7 @@ export default async function AdminPage() {
             <Link key={l.href} href={l.href}>
               <Card className="hover:border-primary/40 transition-colors h-full">
                 <h3 className="text-sm font-semibold text-primary">{l.title}</h3>
-                <p className="text-xs text-ink/50 mt-1">{l.desc}</p>
+                <p className="text-xs text-muted mt-1">{l.desc}</p>
               </Card>
             </Link>
           ))}

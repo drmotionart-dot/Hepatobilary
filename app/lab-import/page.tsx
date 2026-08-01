@@ -48,7 +48,7 @@ export default async function LabImportPage() {
                         <p className="text-sm font-medium">{i.sourceFileName}</p>
                         <Badge tone={i.status === "matched" ? "success" : "warning"}>{i.status}</Badge>
                       </div>
-                      <p className="text-xs text-ink/50 mt-0.5">
+                      <p className="text-xs text-muted mt-0.5">
                         {i.patientCode} · <span dir="auto">{p ? p.fullName : "unmatched"}</span> · {i.extractedTests.length} tests · {formatDateTime(i.importedAt)}
                       </p>
                     </li>

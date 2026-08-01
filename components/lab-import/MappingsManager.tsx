@@ -72,7 +72,7 @@ export default function MappingsManager({ mappings }: { mappings: any[] }) {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="text-left text-xs text-ink/50 border-b border-border">
+                <tr className="text-left text-xs text-muted border-b border-border">
                   <th className="py-2 pr-3">External (PDF) name</th>
                   <th className="py-2 pr-3">Internal key</th>
                   <th className="py-2">Category</th>

@@ -52,19 +52,19 @@ export default async function AppShell({ children }: { children: React.ReactNode
               <>
                 <Link
                   href="/lab-import/needs-review"
-                  className="rounded-lg px-3 py-2 text-sm font-medium text-ink/60 hover:bg-primary/10 hover:text-primary transition-colors"
+                  className="rounded-lg px-3 py-2 text-sm font-medium text-muted hover:bg-primary/10 hover:text-primary transition-colors"
                 >
                   Lab review queue
                 </Link>
                 <Link
                   href="/admin/audit"
-                  className="rounded-lg px-3 py-2 text-sm font-medium text-ink/60 hover:bg-primary/10 hover:text-primary transition-colors"
+                  className="rounded-lg px-3 py-2 text-sm font-medium text-muted hover:bg-primary/10 hover:text-primary transition-colors"
                 >
                   Audit log
                 </Link>
                 <Link
                   href="/admin/users"
-                  className="rounded-lg px-3 py-2 text-sm font-medium text-ink/60 hover:bg-primary/10 hover:text-primary transition-colors"
+                  className="rounded-lg px-3 py-2 text-sm font-medium text-muted hover:bg-primary/10 hover:text-primary transition-colors"
                 >
                   Users & approvals
                 </Link>
@@ -74,7 +74,7 @@ export default async function AppShell({ children }: { children: React.ReactNode
             {isAdmin && (
               <Link
                 href="/admin"
-                className="mt-4 rounded-lg px-3 py-2 text-sm font-medium text-ink/60 hover:bg-primary/10 hover:text-primary transition-colors"
+                className="mt-4 rounded-lg px-3 py-2 text-sm font-medium text-muted hover:bg-primary/10 hover:text-primary transition-colors"
               >
                 Admin
               </Link>

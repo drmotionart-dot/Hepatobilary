@@ -52,7 +52,7 @@ function FieldInput({
     return (
       <label className="flex items-center gap-2 text-sm">
         <input type="checkbox" checked={value === "true"} onChange={(e) => onChange(e.target.checked ? "true" : "")} />
-        <span className="text-ink/60">{value === "true" ? "Yes" : "No"}</span>
+        <span className="text-muted">{value === "true" ? "Yes" : "No"}</span>
       </label>
     );
   }
@@ -134,13 +134,13 @@ export default function FormRecords({ encounterId }: { encounterId: string }) {
               <li key={r._id} className="py-2">
                 <div className="flex items-center justify-between">
                   <p className="text-sm font-medium">{templateNames.get(r.templateId) || "Form"}</p>
-                  <span className="text-xs text-ink/40">
+                  <span className="text-xs text-muted">
                     {r.authorName || "Unknown"} · {formatDateTime(r.createdAt)}
                   </span>
                 </div>
                 {Object.entries(r.values || {}).filter(([, v]) => v !== "" && v !== false).map(([k, v]) => (
                   <p key={k} className="text-xs text-ink/70 mt-0.5">
-                    <span className="text-ink/40 capitalize">{k.replace(/_/g, " ")}:</span> {String(v)}
+                    <span className="text-muted capitalize">{k.replace(/_/g, " ")}:</span> {String(v)}
                   </p>
                 ))}
               </li>
@@ -162,7 +162,7 @@ export default function FormRecords({ encounterId }: { encounterId: string }) {
         <form onSubmit={submit} className="flex flex-col gap-3 rounded-lg border border-border p-3">
           <div className="flex items-center justify-between">
             <p className="text-sm font-medium">{selectedTemplate.name}</p>
-            <button type="button" className="text-xs text-ink/50 hover:text-ink" onClick={() => setSelected("")}>
+            <button type="button" className="text-xs text-muted hover:text-ink" onClick={() => setSelected("")}>
               Cancel
             </button>
           </div>

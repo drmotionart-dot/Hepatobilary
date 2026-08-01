@@ -191,17 +191,17 @@ export default function EmergencyAssessmentForm() {
             <label className="flex items-center gap-2 text-sm">
               <input type="checkbox" checked={ecgRequired} onChange={(e) => setEcgRequired(e.target.checked)} />
               <span>ECG required</span>
-              {patientAge > 40 && <span className="text-xs text-ink/40">(auto — age {patientAge})</span>}
+              {patientAge > 40 && <span className="text-xs text-muted">(auto — age {patientAge})</span>}
             </label>
             <label className="flex items-center gap-2 text-sm">
               <input type="checkbox" checked={echoRequired} onChange={(e) => setEchoRequired(e.target.checked)} />
               <span>Echo required</span>
-              {patientAge > 60 && <span className="text-xs text-ink/40">(auto — age {patientAge})</span>}
+              {patientAge > 60 && <span className="text-xs text-muted">(auto — age {patientAge})</span>}
             </label>
             <label className="flex items-center gap-2 text-sm">
               <input type="checkbox" checked={smoker} onChange={(e) => setSmoker(e.target.checked)} />
               <span>Smoker</span>
-              {smoker && <span className="text-xs text-ink/40">(adds Atrovent + Pulmicort)</span>}
+              {smoker && <span className="text-xs text-muted">(adds Atrovent + Pulmicort)</span>}
             </label>
           </div>
           <div>
@@ -241,7 +241,7 @@ export default function EmergencyAssessmentForm() {
                 className={`w-full text-left px-2 py-1 rounded-md text-sm ${selected?._id === p._id ? "bg-primary/10" : "hover:bg-ink/5"}`}
               >
                 <span className="font-medium" dir="auto">{p.fullName}</span>
-                <span className="text-ink/50 ml-2">{p.medicalNumber} · {p.age}y</span>
+                <span className="text-muted ml-2">{p.medicalNumber} · {p.age}y</span>
               </button>
             </li>
           ))}
@@ -276,7 +276,7 @@ export default function EmergencyAssessmentForm() {
         {selected && (
           <div className="rounded-lg bg-primary/5 p-3 text-sm">
             <p className="font-medium" dir="auto">{selected.fullName}</p>
-            <p className="text-ink/60 text-xs mt-0.5">{selected.medicalNumber} — existing patient</p>
+            <p className="text-muted text-xs mt-0.5">{selected.medicalNumber} — existing patient</p>
           </div>
         )}
 

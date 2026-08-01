@@ -29,7 +29,7 @@ export default async function ClinicPage() {
 
           <Card title={`Active cases (${activeCases.length})`}>
             {activeCases.length === 0 ? (
-              <p className="text-sm text-ink/50">No active clinic cases.</p>
+              <p className="text-sm text-muted">No active clinic cases.</p>
             ) : (
               <ul className="flex flex-col divide-y divide-border">
                 {activeCases.map((e) => {
@@ -38,7 +38,7 @@ export default async function ClinicPage() {
                     <li key={e._id!.toString()} className="py-2.5 flex items-center justify-between">
                       <div>
                         <p className="text-sm font-medium" dir="auto">{p?.fullName || "Unknown"}</p>
-                        <p className="text-xs text-ink/50">{p?.medicalNumber} · seen {formatDate(e.openedAt)}</p>
+                        <p className="text-xs text-muted">{p?.medicalNumber} · seen {formatDate(e.openedAt)}</p>
                       </div>
                       <div className="flex items-center gap-2">
                         <Badge>{caseTypeDisplay(e.caseType, e.customCaseTypeLabel)}</Badge>
@@ -55,7 +55,7 @@ export default async function ClinicPage() {
 
           <Card title={`Follow-up queue (${followUps.length})`}>
             {followUps.length === 0 ? (
-              <p className="text-sm text-ink/50">No follow-ups pending.</p>
+              <p className="text-sm text-muted">No follow-ups pending.</p>
             ) : (
               <ul className="flex flex-col divide-y divide-border">
                 {followUps.map((e) => {
@@ -64,7 +64,7 @@ export default async function ClinicPage() {
                     <li key={e._id!.toString()} className="py-2.5 flex items-center justify-between">
                       <div>
                         <p className="text-sm font-medium" dir="auto">{p?.fullName || "Unknown"}</p>
-                        <p className="text-xs text-ink/50">{p?.medicalNumber} · seen {formatDate(e.openedAt)}</p>
+                        <p className="text-xs text-muted">{p?.medicalNumber} · seen {formatDate(e.openedAt)}</p>
                       </div>
                       <div className="flex items-center gap-2">
                         <Badge>{caseTypeDisplay(e.caseType, e.customCaseTypeLabel)}</Badge>

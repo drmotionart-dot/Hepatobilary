@@ -33,13 +33,13 @@ export default function ShiftClock({ serverNow, shift }: { serverNow?: string; s
     <div className="mt-3 flex items-center justify-between gap-3 border-t border-border pt-3">
       <div>
         <div className="font-mono text-lg leading-none tabular-nums">{fmtTime(now)}</div>
-        <div className="mt-1 text-xs text-ink/50">{fmtDate(now)}</div>
+        <div className="mt-1 text-xs text-muted">{fmtDate(now)}</div>
       </div>
       <div className="text-right text-xs">
         <div className="font-medium text-primary">
           Shift window {String(startHour).padStart(2, "0")}:00 → {String(startHour).padStart(2, "0")}:00
         </div>
-        <div className="mt-0.5 text-ink/50">
+        <div className="mt-0.5 text-muted">
           {beforeStart ? `Night shift — from ${activeDate || "yesterday"}` : `Day shift — ${activeDate || "today"}`}
         </div>
       </div>

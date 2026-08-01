@@ -45,10 +45,10 @@ export default function ChangePasswordPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-bg px-4">
+    <main className="min-h-screen flex items-center justify-center bg-bg px-4">
       <div className="w-full max-w-sm rounded-2xl bg-surface p-6 shadow-sm border border-border">
         <h1 className="text-lg font-semibold text-primary mb-1">Change password</h1>
-        <p className="text-sm text-ink/60 mb-6">
+        <p className="text-sm text-muted mb-6">
           Your temporary password has expired — set a new one to continue. (Minimum 8 characters)
         </p>
 
@@ -78,11 +78,11 @@ export default function ChangePasswordPage() {
             clearToken();
             router.push("/login");
           }}
-          className="mt-4 text-xs text-ink/50 hover:text-ink/80"
+          className="mt-4 text-xs text-muted hover:text-ink/80"
         >
           Sign out
         </button>
       </div>
-    </div>
+    </main>
   );
 }

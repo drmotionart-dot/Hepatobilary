@@ -45,10 +45,10 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-bg px-4">
+    <main className="min-h-screen flex items-center justify-center bg-bg px-4">
       <div className="w-full max-w-sm rounded-2xl bg-surface p-6 shadow-sm border border-border">
         <h1 className="text-lg font-semibold text-primary mb-1">HPB Department</h1>
-        <p className="text-sm text-ink/60 mb-6">Sign in to continue.</p>
+        <p className="text-sm text-muted mb-6">Sign in to continue.</p>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-3">
           <div>
@@ -67,7 +67,7 @@ export default function LoginPage() {
           </Button>
         </form>
 
-        <p className="text-xs text-ink/50 mt-4">
+        <p className="text-xs text-muted mt-4">
           New here?{" "}
           <Link href="/register" className="text-primary font-medium hover:underline">
             Request access
@@ -75,6 +75,6 @@ export default function LoginPage() {
           — an admin must approve your account before it becomes active.
         </p>
       </div>
-    </div>
+    </main>
   );
 }

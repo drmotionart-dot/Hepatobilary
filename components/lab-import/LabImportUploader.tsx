@@ -47,7 +47,7 @@ export default function LabImportUploader() {
           className="text-sm"
         />
         {files.length > 0 && (
-          <p className="text-xs text-ink/60">{files.length} file(s) selected</p>
+          <p className="text-xs text-muted">{files.length} file(s) selected</p>
         )}
         {error && <p className="text-xs text-danger">{error}</p>}
 
@@ -65,7 +65,7 @@ export default function LabImportUploader() {
           </p>
           <ul className="flex flex-col gap-1">
             {result.results.map((r: any, i: number) => (
-              <li key={i} className="text-xs text-ink/60">
+              <li key={i} className="text-xs text-muted">
                 {r.fileName} — {r.status}{r.message ? `: ${r.message}` : ""}
               </li>
             ))}

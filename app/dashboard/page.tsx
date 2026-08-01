@@ -1,4 +1,4 @@
-﻿import Link from "next/link";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import AppShell from "@/components/AppShell";
 import OnShiftCard from "@/components/OnShiftCard";
@@ -46,16 +46,16 @@ export default async function DashboardPage() {
 
         <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
           <Card className="!p-4">
-            <p className="text-xs text-ink/50">Active ward patients</p>
+            <p className="text-xs text-muted">Active ward patients</p>
             <p className="text-2xl font-semibold mt-1">{counters.activeWard}</p>
           </Card>
           <Card className="!p-4">
-            <p className="text-xs text-ink/50">Follow-ups pending</p>
+            <p className="text-xs text-muted">Follow-ups pending</p>
             <p className="text-2xl font-semibold mt-1">{counters.followUpPending}</p>
           </Card>
           <Link href="/lab-import/needs-review" className="col-span-2 md:col-span-1">
             <Card className="!p-4 h-full">
-              <p className="text-xs text-ink/50">Lab imports awaiting review</p>
+              <p className="text-xs text-muted">Lab imports awaiting review</p>
               <p className="text-2xl font-semibold mt-1">
                 <Badge tone={counters.needsReviewImports > 0 ? "warning" : "success"}>{counters.needsReviewImports}</Badge>
               </p>
@@ -67,7 +67,7 @@ export default async function DashboardPage() {
 
         <Card title="Follow-up queue">
           {followUps.length === 0 ? (
-            <p className="text-sm text-ink/50">No follow-ups pending.</p>
+            <p className="text-sm text-muted">No follow-ups pending.</p>
           ) : (
             <ul className="flex flex-col divide-y divide-border">
               {followUps.map((e) => {
@@ -76,10 +76,10 @@ export default async function DashboardPage() {
                   <li key={e._id.toString()} className="py-2.5 flex items-center justify-between">
                     <div>
                       <p className="text-sm font-medium" dir="auto">{p?.fullName || "Unknown"}</p>
-                      <p className="text-xs text-ink/50">{p?.medicalNumber}</p>
+                      <p className="text-xs text-muted">{p?.medicalNumber}</p>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-xs text-ink/50">{formatDate(e.openedAt)}</span>
+                      <span className="text-xs text-muted">{formatDate(e.openedAt)}</span>
                       <Link href={`/ward/${e._id}`} className="text-xs text-primary font-medium">
                         Open →
                       </Link>

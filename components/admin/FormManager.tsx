@@ -82,7 +82,7 @@ export default function FormManager({ templates }: { templates: any[] }) {
                   <p className="text-sm font-medium">{t.name}</p>
                   <Badge>{t.fields?.length || 0} fields</Badge>
                 </div>
-                <p className="text-xs text-ink/50 mt-0.5">
+                <p className="text-xs text-muted mt-0.5">
                   {(t.fields || []).map((f: any) => f.label).join(" · ")}
                 </p>
               </li>

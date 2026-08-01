@@ -19,7 +19,7 @@ export default function MobileNav({ items, extra, className = "" }: { items: Nav
             href={item.href}
             aria-current={active ? "page" : undefined}
             className={`flex min-h-11 flex-1 flex-col items-center justify-center gap-0.5 rounded-lg px-1 py-1.5 text-center text-[11px] font-medium transition-colors ${
-              active ? "text-primary" : "text-ink/60"
+              active ? "text-primary" : "text-muted"
             }`}
           >
             {item.label}

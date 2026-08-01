@@ -95,14 +95,16 @@ export default function ReferralReview({ referral }: { referral: ReferralConsult
         {referral.imageData && (
           <button type="button" onClick={() => setExpanded(!expanded)} className="mt-2 block">
             {expanded ? (
+              // eslint-disable-next-line @next/next/no-img-element -- inline data-URL (client-side resized photo) with unknown intrinsic size
               <img src={referral.imageData} alt="Referral hardcopy" className="max-h-96 rounded-lg border border-border" />
             ) : (
+              // eslint-disable-next-line @next/next/no-img-element -- inline data-URL (client-side resized photo) with unknown intrinsic size
               <img src={referral.imageData} alt="Referral hardcopy" className="h-24 rounded-lg border border-border shadow-sm" />
             )}
           </button>
         )}
         {referral.reviewedAt && (
-          <p className="text-xs text-ink/40 mt-1">Reviewed {new Date(referral.reviewedAt).toLocaleString("en-GB")}</p>
+          <p className="text-xs text-muted mt-1">Reviewed {new Date(referral.reviewedAt).toLocaleString("en-GB")}</p>
         )}
       </div>
     );
@@ -125,7 +127,10 @@ export default function ReferralReview({ referral }: { referral: ReferralConsult
       <div>
         <Label>Or upload a photo of the hardcopy</Label>
         <input type="file" accept="image/*" onChange={handleFile} className="text-sm" />
-        {photo && <img src={photo} alt="Selected photo" className="mt-2 h-24 rounded-lg border border-border" />}
+        {photo && (
+          // eslint-disable-next-line @next/next/no-img-element -- inline data-URL (client-side resized photo) with unknown intrinsic size
+          <img src={photo} alt="Selected photo" className="mt-2 h-24 rounded-lg border border-border" />
+        )}
       </div>
 
       {error && <p className="text-xs text-danger">{error}</p>}

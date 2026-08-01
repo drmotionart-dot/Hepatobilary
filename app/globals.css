@@ -2,6 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer utilities {
+  .text-muted {
+    color: rgb(var(--ink-muted));
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
@@ -20,6 +26,7 @@
   --bg: 246 247 245;
   --surface: 255 255 255;
   --ink: 28 35 33;
+  --ink-muted: 94 100 98;
   --border: 219 223 220;
   --primary: 14 92 86;
   --primary-ink: 10 64 60;
@@ -34,6 +41,7 @@ html.dark {
   --bg: 16 21 19;
   --surface: 26 33 30;
   --ink: 232 237 234;
+  --ink-muted: 165 173 169;
   --border: 42 51 47;
   --primary: 53 184 172;
   --primary-ink: 96 210 199;

@@ -67,7 +67,7 @@ export default async function EncounterPage({ params }: { params: { id: string }
                   <li key={n._id!.toString()} className="border-l-2 border-primary/20 pl-3">
                     <div className="flex items-center justify-between mb-1">
                       <span className="text-xs font-semibold text-primary uppercase">{n.context}</span>
-                      <span className="text-xs text-ink/40">
+                      <span className="text-xs text-muted">
                         {n.authorName || "Unknown"} · {formatDateTime(n.createdAt)}
                       </span>
                     </div>
@@ -110,9 +110,9 @@ export default async function EncounterPage({ params }: { params: { id: string }
                     <div>
                       <p className="text-sm font-medium">{im.modality}{im.modalityDetail ? ` (${im.modalityDetail})` : ""} — {im.partToBeExamined}</p>
                       {im.result ? (
-                        <p className="text-xs text-ink/60 mt-0.5">{im.result}</p>
+                        <p className="text-xs text-muted mt-0.5">{im.result}</p>
                       ) : (
-                        <p className="text-xs text-ink/40 mt-0.5">{im.clinicalDiagnosis}</p>
+                        <p className="text-xs text-muted mt-0.5">{im.clinicalDiagnosis}</p>
                       )}
                     </div>
                     <Badge tone={im.status === "resulted" ? "success" : im.status === "scheduled" ? "info" : "default"}>
@@ -136,7 +136,7 @@ export default async function EncounterPage({ params }: { params: { id: string }
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-sm font-medium">{r.toSpecialty}</p>
-                        <p className="text-xs text-ink/50 mt-0.5">{r.reason} · {formatDate(r.referredAt)}</p>
+                        <p className="text-xs text-muted mt-0.5">{r.reason} · {formatDate(r.referredAt)}</p>
                       </div>
                       <Badge tone={r.status === "reviewed" ? "success" : "warning"}>{r.status}</Badge>
                     </div>
@@ -151,16 +151,16 @@ export default async function EncounterPage({ params }: { params: { id: string }
           {/* Treatment log */}
           <Card title="Treatment log">
             {!treatmentLog || treatmentLog.entries.length === 0 ? (
-              <p className="text-sm text-ink/50 mb-3">No treatments logged.</p>
+              <p className="text-sm text-muted mb-3">No treatments logged.</p>
             ) : (
               <ul className="flex flex-col divide-y divide-border mb-4">
                 {treatmentLog.entries.map((t, i) => (
                   <li key={i} className="py-2.5">
                     <p className="text-sm font-medium">{t.treatment}</p>
                     {t.otherRecommendations && (
-                      <p className="text-xs text-ink/50 mt-0.5">{t.otherRecommendations}</p>
+                      <p className="text-xs text-muted mt-0.5">{t.otherRecommendations}</p>
                     )}
-                    <p className="text-xs text-ink/40 mt-0.5">{formatDate(t.date)}</p>
+                    <p className="text-xs text-muted mt-0.5">{formatDate(t.date)}</p>
                   </li>
                 ))}
               </ul>
@@ -172,7 +172,7 @@ export default async function EncounterPage({ params }: { params: { id: string }
           <Card title="Operation record">
             {!operation ? (
               <div>
-                <p className="text-sm text-ink/50 mb-3">No operation recorded.</p>
+                <p className="text-sm text-muted mb-3">No operation recorded.</p>
                 {canEditOperation && (
                   <AddOperationForm encounterId={encounter._id!.toString()} patientNo={patient?.medicalNumber || ""} />
                 )}
@@ -180,31 +180,31 @@ export default async function EncounterPage({ params }: { params: { id: string }
             ) : (
               <div>
                 <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2 text-sm">
-                  <dt className="text-xs text-ink/50">Procedure</dt>
+                  <dt className="text-xs text-muted">Procedure</dt>
                   <dd className="font-medium">{operation.procedureName}</dd>
-                  <dt className="text-xs text-ink/50">Date</dt>
+                  <dt className="text-xs text-muted">Date</dt>
                   <dd>{operation.date ? formatDate(operation.date) : ""}</dd>
-                  <dt className="text-xs text-ink/50">Surgeon</dt>
+                  <dt className="text-xs text-muted">Surgeon</dt>
                   <dd dir="auto">{operation.surgeonName || "Unknown"}</dd>
-                  <dt className="text-xs text-ink/50">Assistants</dt>
+                  <dt className="text-xs text-muted">Assistants</dt>
                   <dd>{(operation.assistantNames || []).join(", ") || "—"}</dd>
-                  <dt className="text-xs text-ink/50">Pre-op diagnosis</dt>
+                  <dt className="text-xs text-muted">Pre-op diagnosis</dt>
                   <dd>{operation.preOpDiagnosis}</dd>
-                  <dt className="text-xs text-ink/50">Post-op diagnosis</dt>
+                  <dt className="text-xs text-muted">Post-op diagnosis</dt>
                   <dd>{operation.postOpDiagnosis}</dd>
-                  <dt className="text-xs text-ink/50">Anesthesia</dt>
+                  <dt className="text-xs text-muted">Anesthesia</dt>
                   <dd>{operation.anesthesiaType} — {operation.anesthetist}</dd>
-                  <dt className="text-xs text-ink/50">EBL</dt>
+                  <dt className="text-xs text-muted">EBL</dt>
                   <dd>{operation.estimatedBloodLoss}</dd>
-                  <dt className="text-xs text-ink/50">Findings</dt>
+                  <dt className="text-xs text-muted">Findings</dt>
                   <dd>{operation.findings}</dd>
-                  <dt className="text-xs text-ink/50">Procedure details</dt>
+                  <dt className="text-xs text-muted">Procedure details</dt>
                   <dd className="sm:col-span-1">{operation.procedureDetails}</dd>
-                  <dt className="text-xs text-ink/50">Complications</dt>
+                  <dt className="text-xs text-muted">Complications</dt>
                   <dd>{operation.complications || "None"}</dd>
-                  <dt className="text-xs text-ink/50">Specimens</dt>
+                  <dt className="text-xs text-muted">Specimens</dt>
                   <dd>{operation.specimensSent.join(", ") || "None"}</dd>
-                  <dt className="text-xs text-ink/50">Post-op plan</dt>
+                  <dt className="text-xs text-muted">Post-op plan</dt>
                   <dd className="sm:col-span-1">{operation.postOpPlan}</dd>
                 </dl>
                 {canEditOperation && (
@@ -227,7 +227,7 @@ export default async function EncounterPage({ params }: { params: { id: string }
           {discharge && (
             <Card title="Discharge summary">
               <p className="text-sm text-ink/70">{discharge.summary}</p>
-              <p className="text-xs text-ink/50 mt-2">
+              <p className="text-xs text-muted mt-2">
                 Discharged {formatDate(discharge.dischargeDate)}
                 {discharge.followUpRequired ? ` · Follow-up: ${discharge.followUpInstructions || "required"}` : ""}
               </p>

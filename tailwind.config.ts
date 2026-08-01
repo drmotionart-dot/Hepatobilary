@@ -10,6 +10,7 @@ export default {
         bg: "rgb(var(--bg) / <alpha-value>)",
         surface: "rgb(var(--surface) / <alpha-value>)",
         ink: "rgb(var(--ink) / <alpha-value>)",
+        muted: "rgb(var(--ink-muted) / <alpha-value>)",
         border: "rgb(var(--border) / <alpha-value>)",
         primary: {
           DEFAULT: "rgb(var(--primary) / <alpha-value>)",

@@ -99,7 +99,7 @@ export default function TopBar({ user }: { user: UserInfo | null }) {
 
         <div ref={boxRef} className="relative ml-auto flex-1 max-w-xs sm:max-w-sm">
           <div className="relative">
-            <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink/40">
+            <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted">
               <IconSearch />
             </span>
             <input
@@ -119,9 +119,9 @@ export default function TopBar({ user }: { user: UserInfo | null }) {
 
           {open && (q.trim().length >= 2 || searching) && (
             <div className="absolute left-0 right-0 top-full z-30 mt-1 max-h-72 overflow-y-auto rounded-lg border border-border bg-surface shadow-lg">
-              {searching && <p className="px-3 py-2 text-xs text-ink/50">Searching…</p>}
+              {searching && <p className="px-3 py-2 text-xs text-muted">Searching…</p>}
               {!searching && results.length === 0 && (
-                <p className="px-3 py-2 text-xs text-ink/50">No patients found.</p>
+                <p className="px-3 py-2 text-xs text-muted">No patients found.</p>
               )}
               <ul>
                 {results.map((p) => (
@@ -132,7 +132,7 @@ export default function TopBar({ user }: { user: UserInfo | null }) {
                       className="flex w-full items-center justify-between px-3 py-2 text-left text-sm hover:bg-primary/10"
                     >
                       <span className="font-medium" dir="auto">{p.fullName}</span>
-                      <span className="text-xs text-ink/50">
+                      <span className="text-xs text-muted">
                         {p.medicalNumber} · {p.age}y · {p.sex}
                       </span>
                     </button>
@@ -155,7 +155,7 @@ export default function TopBar({ user }: { user: UserInfo | null }) {
         {user && (
           <div className="hidden sm:flex flex-col items-end leading-tight">
             <span className="text-sm font-medium">{user.name || "User"}</span>
-            <span className="text-xs text-ink/50">{ROLE_LABELS[user.role] || user.role}</span>
+            <span className="text-xs text-muted">{ROLE_LABELS[user.role] || user.role}</span>
           </div>
         )}
 

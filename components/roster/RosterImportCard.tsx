@@ -168,7 +168,7 @@ export default function RosterImportCard() {
               onChange={(e) => setFile(e.target.files?.[0] || null)}
               className="text-sm"
             />
-            <p className="text-xs text-ink/50 mt-1">
+            <p className="text-xs text-muted mt-1">
               One row per day, one column per shift slot; cells hold bulleted &quot;name + phone&quot; pairs.
               People match by phone, then by name. Emergency days fill the duty pool.
             </p>
@@ -215,7 +215,7 @@ export default function RosterImportCard() {
         <Card title={`Unmatched roster entries (${review.imports.reduce((n, i) => n + i.rows.length, 0)})`}>
           <div className="flex flex-col gap-4">
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <p className="text-xs text-ink/50">
+              <p className="text-xs text-muted">
                 People with a phone can get an account created right here (matches by phone, never duplicates).
               </p>
               <Button type="button" size="sm" loading={creating} onClick={createAllAccounts}>
@@ -234,7 +234,7 @@ export default function RosterImportCard() {
                       <p key={i} className="text-ink/70 font-mono">{c.name} — login: {c.loginId} — pw: {c.password}</p>
                     ))}
                     {createResult.skipped.map((c: any, i: number) => (
-                      <p key={`s${i}`} className="text-ink/50">Skipped: {c.name} — {c.reason}</p>
+                      <p key={`s${i}`} className="text-muted">Skipped: {c.name} — {c.reason}</p>
                     ))}
                   </>
                 ) : (
@@ -250,7 +250,7 @@ export default function RosterImportCard() {
 
             {review.imports.map((imp) => (
               <div key={imp._id}>
-                <p className="text-xs text-ink/50 mb-2">
+                <p className="text-xs text-muted mb-2">
                   {imp.sourceFileName} — imported {formatDate(imp.uploadedAt)}
                 </p>
                 <ul className="flex flex-col divide-y divide-border">
@@ -258,7 +258,7 @@ export default function RosterImportCard() {
                     <li key={i} className="py-2.5 flex flex-wrap items-center justify-between gap-2">
                       <div className="min-w-0">
                         <p className="text-sm font-medium" dir="auto">{row.name}</p>
-                        <p className="text-xs text-ink/50">
+                        <p className="text-xs text-muted">
                           {formatDate(row.date)} · {targetLabel(row.target)}{row.phone ? ` · ${row.phone}` : ""}
                         </p>
                       </div>
@@ -294,7 +294,7 @@ export default function RosterImportCard() {
       )}
 
       {review && review.imports.length === 0 && (
-        <p className="text-xs text-ink/50">No unmatched roster entries waiting for review.</p>
+        <p className="text-xs text-muted">No unmatched roster entries waiting for review.</p>
       )}
     </div>
   );

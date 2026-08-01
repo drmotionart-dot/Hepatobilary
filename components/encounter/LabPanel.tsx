@@ -12,7 +12,7 @@ export default function LabPanel({ results, presetTests = [] }: { results: LabRe
       return (
         <div className="rounded-lg bg-primary/5 p-3 mb-3">
           <p className="text-xs font-medium text-primary mb-1">Awaiting results (ordered with this case type)</p>
-          <p className="text-xs text-ink/60 font-mono">{presetTests.join(" · ")}</p>
+          <p className="text-xs text-muted font-mono">{presetTests.join(" · ")}</p>
         </div>
       );
     }
@@ -37,7 +37,7 @@ export default function LabPanel({ results, presetTests = [] }: { results: LabRe
     <div className="overflow-x-auto mb-4">
       <table className="w-full text-sm border-collapse">
         <thead>
-          <tr className="text-left text-xs text-ink/50 border-b border-border">
+          <tr className="text-left text-xs text-muted border-b border-border">
             <th className="py-2 pr-3 font-medium sticky left-0 bg-surface">Test</th>
             {dates.map((d) => (
               <th key={d} className="py-2 pr-3 font-medium text-right whitespace-nowrap" title={new Date(d).toDateString()}>
@@ -53,7 +53,7 @@ export default function LabPanel({ results, presetTests = [] }: { results: LabRe
             return (
               <Fragment key={category}>
                 <tr>
-                  <td colSpan={dates.length + 1} className="pt-3 pb-1 text-xs font-semibold uppercase tracking-wide text-ink/60 border-b border-border">
+                  <td colSpan={dates.length + 1} className="pt-3 pb-1 text-xs font-semibold uppercase tracking-wide text-muted border-b border-border">
                     {category}
                   </td>
                 </tr>
@@ -64,7 +64,7 @@ export default function LabPanel({ results, presetTests = [] }: { results: LabRe
                       <td className="py-1.5 pr-3 sticky left-0 bg-surface">
                         <span className="font-medium">{test}</span>
                         {(first.unit || first.refRange) && (
-                          <span className="block text-xs text-ink/40">
+                          <span className="block text-xs text-muted">
                             {first.unit ? first.unit : ""}
                             {first.unit && first.refRange ? " · " : ""}
                             {first.refRange ? `ref ${first.refRange}` : ""}
@@ -74,7 +74,7 @@ export default function LabPanel({ results, presetTests = [] }: { results: LabRe
                       {dates.map((d) => {
                         const entry = byCell.get(`${d}|${test}`);
                         if (!entry) {
-                          return <td key={d} className="py-1.5 pr-3 text-right text-ink/25 font-mono">—</td>;
+                          return <td key={d} className="py-1.5 pr-3 text-right text-muted font-mono">—</td>;
                         }
                         const flag = entry.abnormalFlag || (entry.abnormal && (entry.value.startsWith("H") ? "H" : entry.value.startsWith("L") ? "L" : undefined));
                         const tone = flag === "H" ? "text-urgent" : flag === "L" ? "text-pending" : "";
@@ -94,7 +94,7 @@ export default function LabPanel({ results, presetTests = [] }: { results: LabRe
         </tbody>
       </table>
       {presetTests.length > 0 && (
-        <p className="text-xs text-ink/50 mt-2">
+        <p className="text-xs text-muted mt-2">
           Still awaiting: <span className="font-mono">{presetTests.join(" · ")}</span>
         </p>
       )}

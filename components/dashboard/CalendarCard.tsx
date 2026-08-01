@@ -29,7 +29,7 @@ export default function CalendarCard({
     <Card title={monthLabel} className="!p-4">
       <div className="grid grid-cols-7 gap-1 text-center text-[11px]">
         {WEEKDAYS.map((w) => (
-          <div key={w} className="py-1 font-medium text-ink/50">{w}</div>
+          <div key={w} className="py-1 font-medium text-muted">{w}</div>
         ))}
         {cells.map((day, i) => {
           if (!day) return <div key={`empty-${i}`} />;
@@ -47,7 +47,7 @@ export default function CalendarCard({
               <span className={`text-xs font-medium ${isToday ? "text-primary" : ""}`}>
                 {Number(day.date.slice(8, 10))}
               </span>
-              <span className="absolute right-0.5 top-0.5 text-[9px] font-medium text-ink/40">
+              <span className="absolute right-0.5 top-0.5 text-[9px] font-medium text-muted">
                 {DAY_TYPE_LABEL[day.dayType] || ""}
               </span>
               {day.assigned > 0 && (
@@ -61,7 +61,7 @@ export default function CalendarCard({
           );
         })}
       </div>
-      <p className="mt-3 text-[11px] text-ink/50">
+      <p className="mt-3 text-[11px] text-muted">
         Click a day to open the roster. Dots show assigned people; the ring marks today.
       </p>
     </Card>

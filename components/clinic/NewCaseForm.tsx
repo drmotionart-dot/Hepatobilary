@@ -99,7 +99,7 @@ export default function NewCaseForm() {
       {searched && (
         <div className="mb-3">
           {results.length === 0 ? (
-            <p className="text-xs text-ink/50">No matching patient. Fill the details below to create one.</p>
+            <p className="text-xs text-muted">No matching patient. Fill the details below to create one.</p>
           ) : (
             <ul className="flex flex-col divide-y divide-border">
               {results.map((p) => (
@@ -110,7 +110,7 @@ export default function NewCaseForm() {
                     className={`w-full text-left px-2 py-1 rounded-md text-sm ${selected?._id === p._id ? "bg-primary/10" : "hover:bg-ink/5"}`}
                   >
                     <span className="font-medium" dir="auto">{p.fullName}</span>
-                    <span className="text-ink/50 ml-2">{p.medicalNumber} · {p.age}y · {p.sex}</span>
+                    <span className="text-muted ml-2">{p.medicalNumber} · {p.age}y · {p.sex}</span>
                   </button>
                 </li>
               ))}
@@ -124,7 +124,7 @@ export default function NewCaseForm() {
         {selected ? (
           <div className="rounded-lg bg-primary/5 p-3 text-sm">
             <p className="font-medium" dir="auto">{selected.fullName}</p>
-            <p className="text-ink/60 text-xs mt-0.5">{selected.medicalNumber} — using existing patient record</p>
+            <p className="text-muted text-xs mt-0.5">{selected.medicalNumber} — using existing patient record</p>
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-3">

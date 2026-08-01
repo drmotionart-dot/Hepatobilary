@@ -29,7 +29,7 @@ export default async function EmergencyPage() {
 
           <Card title={`Last 24h (${encounters.length})`}>
             {encounters.length === 0 ? (
-              <p className="text-sm text-ink/50">No emergency cases in the last 24 hours.</p>
+              <p className="text-sm text-muted">No emergency cases in the last 24 hours.</p>
             ) : (
               <ul className="flex flex-col divide-y divide-border">
                 {encounters.map((e) => {
@@ -38,7 +38,7 @@ export default async function EmergencyPage() {
                     <li key={e._id!.toString()} className="py-2.5 flex items-center justify-between">
                       <div>
                         <p className="text-sm font-medium" dir="auto">{p?.fullName || "Unknown"}</p>
-                        <p className="text-xs text-ink/50">
+                        <p className="text-xs text-muted">
                           {p?.medicalNumber} · {formatDateTime(e.openedAt)}
                           {e.noteSummary ? ` · ${e.noteSummary}` : ""}
                         </p>
