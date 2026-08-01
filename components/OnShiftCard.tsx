@@ -1,4 +1,4 @@
-type ShiftPerson = { name: string; category: string };
+type ShiftPerson = { name: string; category: string; startTime?: string | null; endTime?: string | null };
 type ShiftInfo = { startHour: number; activeDateKey: string; beforeStart: boolean };
 import EmptyState from "@/components/ui/EmptyState";
 import ShiftClock from "@/components/dashboard/ShiftClock";
@@ -21,6 +21,16 @@ export default function OnShiftCard({
   serverNow?: string;
   shift?: ShiftInfo;
 }) {
+  // Highlight the people whose shift window (startTime–endTime) includes the
+  // dashboard's server clock — e.g. the 08:00–16:00 long shift while it's 11:00.
+  const nowMinutes = serverNow ? new Date(serverNow).getHours() * 60 + new Date(serverNow).getMinutes() : -1;
+  function minutesOf(t: string | null | undefined): number | null {
+    if (!t) return null;
+    const m = /^(\d{1,2}):(\d{2})/.exec(t);
+    if (!m) return null;
+    return parseInt(m[1], 10) * 60 + parseInt(m[2], 10);
+  }
+
   return (
     <div className="rounded-2xl bg-surface p-5 shadow-sm border border-border">
       <div className="flex items-center justify-between mb-3">
@@ -38,12 +48,26 @@ export default function OnShiftCard({
         <EmptyState title="No shift assigned yet for this slot." className="py-6" />
       ) : (
         <ul className="flex flex-col gap-1.5">
-          {people.map((p) => (
-            <li key={p.name} className="flex items-center justify-between text-sm">
-              <span className="font-medium" dir="auto">{p.name}</span>
-              <span className="text-muted">{p.category}</span>
-            </li>
-          ))}
+          {people.map((p) => {
+            const start = minutesOf(p.startTime);
+            const end = minutesOf(p.endTime);
+            const inWindow = start !== null && end !== null && nowMinutes >= start && nowMinutes < end;
+            return (
+              <li key={p.name} className="flex items-center justify-between text-sm">
+                <span className="flex items-center gap-2">
+                  {start !== null && end !== null ? (
+                    <span
+                      aria-hidden
+                      className={`h-1.5 w-1.5 rounded-full ${inWindow ? "bg-success" : "bg-border"}`}
+                      title={inWindow ? "On duty right now" : `Shift window ${p.startTime}–${p.endTime}`}
+                    />
+                  ) : null}
+                  <span className={`font-medium ${inWindow ? "text-ink" : ""}`} dir="auto">{p.name}</span>
+                </span>
+                <span className="text-muted">{p.category}</span>
+              </li>
+            );
+          })}
         </ul>
       )}
       <ShiftClock serverNow={serverNow} shift={shift} />

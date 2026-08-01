@@ -9,6 +9,7 @@ import AddNoteForm from "@/components/encounter/AddNoteForm";
 import AddLabEntryForm from "@/components/encounter/AddLabEntryForm";
 import LabPanel from "@/components/encounter/LabPanel";
 import AddImagingForm from "@/components/encounter/AddImagingForm";
+import ImagingList from "@/components/encounter/ImagingList";
 import AddReferralForm from "@/components/encounter/AddReferralForm";
 import ReferralReview from "@/components/encounter/ReferralReview";
 import AddTreatmentForm from "@/components/encounter/AddTreatmentForm";
@@ -54,7 +55,16 @@ export default async function EncounterPage({ params }: { params: { id: string }
           action={<Badge tone={statusTone as any}>{encounter.status}</Badge>}
         />
 
-        {encounter.status === "active" && canManageStatus && <StatusActions encounterId={encounter._id!.toString()} encounterType={encounter.type} />}
+        {(encounter.status === "active" || encounter.status === "follow-up-pending") && canManageStatus && (
+          <StatusActions
+            encounterId={encounter._id!.toString()}
+            encounterType={encounter.type}
+            encounterStatus={encounter.status}
+            patientId={encounter.patientId?.toString()}
+            caseType={encounter.caseType}
+            customCaseTypeLabel={encounter.customCaseTypeLabel}
+          />
+        )}
 
         <div className="flex flex-col gap-5 mt-5">
           {/* Clinical notes */}
@@ -75,8 +85,44 @@ export default async function EncounterPage({ params }: { params: { id: string }
                     {n.complaint?.main && (
                       <p className="text-sm text-ink/70 mt-1">Complaint: {n.complaint.main} ({n.complaint.duration})</p>
                     )}
+                    {n.complaint?.bowelHabit && n.complaint.bowelHabit !== "normal" && (
+                      <p className="text-sm text-ink/70 mt-1">Bowel habit: {n.complaint.bowelHabit}</p>
+                    )}
+                    {n.complaint?.dysuria && <p className="text-sm text-ink/70 mt-1">Dysuria</p>}
+                    {n.complaint?.viralHepatitis && (n.complaint.viralHepatitis.hcv || n.complaint.viralHepatitis.hbv || n.complaint.viralHepatitis.hiv) && (
+                      <p className="text-sm text-ink/70 mt-1">
+                        Viral hepatitis: {[n.complaint.viralHepatitis.hcv && "HCV", n.complaint.viralHepatitis.hbv && "HBV", n.complaint.viralHepatitis.hiv && "HIV"].filter(Boolean).join(", ")}
+                      </p>
+                    )}
+                    {n.complaint?.associated?.length > 0 && (
+                      <p className="text-sm text-ink/70 mt-1"><span className="font-medium">Associated:</span> {n.complaint.associated.join(", ")}</p>
+                    )}
+                    {n.complaint?.pertinentNegatives?.length > 0 && (
+                      <p className="text-sm text-ink/70 mt-1"><span className="font-medium">Negatives:</span> {n.complaint.pertinentNegatives.join(", ")}</p>
+                    )}
+                    {n.pmhx?.length > 0 && (
+                      <p className="text-sm text-ink/70 mt-1">
+                        <span className="font-medium">PMHx:</span> {n.pmhx.map((x) => (x.detail ? `${x.condition} (${x.detail})` : x.condition)).join("; ")}
+                      </p>
+                    )}
+                    {n.pshx?.length > 0 && (
+                      <p className="text-sm text-ink/70 mt-1">
+                        <span className="font-medium">PSHx:</span> {n.pshx.map((x) => (x.date ? `${x.procedure} (${formatDate(x.date)})` : x.procedure)).join("; ")}
+                      </p>
+                    )}
                     {n.generalExam?.bp && (
-                      <p className="text-sm text-ink/70 mt-1">BP {n.generalExam.bp} · HR {n.generalExam.hr}</p>
+                      <p className="text-sm text-ink/70 mt-1">BP {n.generalExam.bp} · HR {n.generalExam.hr}{n.generalExam.consciousness ? ` · A/O/C ${n.generalExam.consciousness}` : ""}</p>
+                    )}
+                    {n.generalExam?.ecgRequired && (
+                      <p className="text-sm text-ink/70 mt-1">ECG {n.generalExam.ecgDone ? "done" : "required"}{n.generalExam.echoRequired ? ` · Echo ${n.generalExam.echoDone ? "done" : "required"}` : ""}</p>
+                    )}
+                    {n.investigationsOrdered?.length > 0 && (
+                      <p className="text-sm text-ink/70 mt-1"><span className="font-medium">Investigations:</span> {n.investigationsOrdered.join(", ")}</p>
+                    )}
+                    {n.riskFactors && Object.entries(n.riskFactors).filter(([, v]) => Boolean(v)).length > 0 && (
+                      <p className="text-sm text-ink/70 mt-1">
+                        <span className="font-medium">Risk factors:</span> {Object.entries(n.riskFactors).filter(([, v]) => Boolean(v)).map(([k]) => k.replace(/([A-Z])/g, " $1").toLowerCase()).join(", ")}
+                      </p>
                     )}
                     {n.recommendation && (
                       <p className="text-sm text-ink/70 mt-1"><span className="font-medium">Rec:</span> {n.recommendation}</p>
@@ -101,27 +147,7 @@ export default async function EncounterPage({ params }: { params: { id: string }
 
           {/* Imaging */}
           <Card title="Imaging requests">
-            {imaging.length === 0 ? (
-              <EmptyState title="No imaging requested." className="py-6 mb-3" />
-            ) : (
-              <ul className="flex flex-col divide-y divide-border mb-4">
-                {imaging.map((im) => (
-                  <li key={im._id!.toString()} className="py-2.5 flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium">{im.modality}{im.modalityDetail ? ` (${im.modalityDetail})` : ""} — {im.partToBeExamined}</p>
-                      {im.result ? (
-                        <p className="text-xs text-muted mt-0.5">{im.result}</p>
-                      ) : (
-                        <p className="text-xs text-muted mt-0.5">{im.clinicalDiagnosis}</p>
-                      )}
-                    </div>
-                    <Badge tone={im.status === "resulted" ? "success" : im.status === "scheduled" ? "info" : "default"}>
-                      {im.status}
-                    </Badge>
-                  </li>
-                ))}
-              </ul>
-            )}
+            <ImagingList imaging={imaging} canManage={session.role === "intern" || session.role === "resident"} />
             <AddImagingForm encounterId={encounter._id!.toString()} />
           </Card>
 

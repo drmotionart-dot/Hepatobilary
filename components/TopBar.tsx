@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { apiFetch, clearToken } from "@/lib/client-api";
 import { APP_NAME } from "@/lib/constants";
+import ShiftKeyBadge from "@/components/shift-key/ShiftKeyBadge";
 
 type UserInfo = { name?: string; email?: string; role: string };
 type PatientHit = { _id: string; medicalNumber: string; fullName: string; age: number; sex: string };
@@ -143,6 +144,8 @@ export default function TopBar({ user }: { user: UserInfo | null }) {
             </div>
           )}
         </div>
+
+        <ShiftKeyBadge />
 
         <button
           type="button"

@@ -8,9 +8,35 @@ import { Textarea } from "@/components/ui/Textarea";
 import { Label } from "@/components/ui/Label";
 import { apiFetch } from "@/lib/client-api";
 
-export default function StatusActions({ encounterId, encounterType }: { encounterId: string; encounterType?: string }) {
+type StatusProps = {
+  encounterId: string;
+  encounterType?: string;
+  encounterStatus?: string;
+  patientId?: string;
+  caseType?: string;
+  customCaseTypeLabel?: string | null;
+};
+
+type Mode =
+  | "none"
+  | "admit"
+  | "discharge"
+  | "follow-up"
+  | "close"
+  | "refer-out"
+  | "escalate"
+  | "open-follow-up";
+
+export default function StatusActions({
+  encounterId,
+  encounterType,
+  encounterStatus = "active",
+  patientId,
+  caseType = "custom",
+  customCaseTypeLabel,
+}: StatusProps) {
   const router = useRouter();
-  const [mode, setMode] = useState<"none" | "admit" | "discharge" | "follow-up" | "close" | "refer-out">("none");
+  const [mode, setMode] = useState<Mode>("none");
   const [ward, setWard] = useState("male");
   const [summary, setSummary] = useState("");
   const [followUpInstructions, setFollowUpInstructions] = useState("");
@@ -24,10 +50,12 @@ export default function StatusActions({ encounterId, encounterType }: { encounte
     setLoading(true);
 
     if (mode === "admit") {
+      // Spec §4.1 step 3: admit SPAWNS a new ward encounter linked to the same
+      // patient and closes the source encounter. The backend handles the spawn.
       const res = await apiFetch(`/api/encounters/${encounterId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ type: "ward", ward }),
+        body: JSON.stringify({ action: "admit", ward }),
       });
       if (!res.ok) {
         const d = await res.json();
@@ -86,19 +114,64 @@ export default function StatusActions({ encounterId, encounterType }: { encounte
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: "referred-out" }),
       });
+    } else if (mode === "escalate") {
+      // Spec §4.1 step 5: clinic → emergency escalation without re-entering data.
+      const res = await apiFetch(`/api/encounters/${encounterId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type: "emergency" }),
+      });
+      if (!res.ok) {
+        const d = await res.json();
+        setError(d.error || "Could not escalate to emergency");
+        setLoading(false);
+        return;
+      }
+    } else if (mode === "open-follow-up") {
+      // Open a follow-up VISIT: a new clinic encounter linked to this prior
+      // discharge (spec §4 / line 93), reusing the same case type.
+      const res = await apiFetch("/api/encounters", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          patientId,
+          type: "clinic",
+          caseType,
+          customCaseTypeLabel,
+          linkedFollowUpOf: encounterId,
+        }),
+      });
+      if (!res.ok) {
+        const d = await res.json();
+        setError(d.error || "Could not open follow-up visit");
+        setLoading(false);
+        return;
+      }
+      const created = await res.json();
+      setLoading(false);
+      router.push(`/ward/${created._id}`);
+      return;
     }
 
     setLoading(false);
     router.refresh();
   }
 
-  const actions = [
-    ...(encounterType !== "ward" ? [{ key: "admit" as const, label: "Admit to ward" }] : []),
-    { key: "discharge" as const, label: "Discharge" },
-    { key: "follow-up" as const, label: "Follow-up" },
-    { key: "close" as const, label: "Close case" },
-    { key: "refer-out" as const, label: "Refer out" },
-  ];
+  const isFollowUpPending = encounterStatus === "follow-up-pending";
+  const isActive = encounterStatus === "active";
+
+  const actions: { key: Mode; label: string }[] = [];
+  if (isActive) {
+    if (encounterType !== "ward") actions.push({ key: "admit", label: "Admit to ward" });
+    actions.push({ key: "discharge", label: "Discharge" });
+    actions.push({ key: "follow-up", label: "Follow-up" });
+    actions.push({ key: "close", label: "Close case" });
+    actions.push({ key: "refer-out", label: "Refer out" });
+    if (encounterType === "clinic") actions.push({ key: "escalate", label: "Escalate to ER" });
+  } else if (isFollowUpPending) {
+    actions.push({ key: "open-follow-up", label: "Open follow-up visit" });
+    actions.push({ key: "close", label: "Close follow-up" });
+  }
 
   return (
     <Card className="print:hidden">
@@ -131,6 +204,7 @@ export default function StatusActions({ encounterId, encounterType }: { encounte
                 <option value="male">Male ward</option>
                 <option value="female">Female ward</option>
               </select>
+              <p className="mt-1 text-xs text-muted">Admitting spawns a new ward encounter for this patient and closes this {encounterType} encounter.</p>
             </div>
           )}
           {mode === "refer-out" && (
@@ -144,7 +218,7 @@ export default function StatusActions({ encounterId, encounterType }: { encounte
               />
             </div>
           )}
-          {mode !== "close" && mode !== "admit" && (
+          {mode !== "close" && mode !== "admit" && mode !== "escalate" && mode !== "open-follow-up" && (
             <div>
               <Label>{mode === "discharge" ? "Discharge summary" : mode === "refer-out" ? "Reason" : "Follow-up plan"}</Label>
               <Textarea
@@ -166,6 +240,12 @@ export default function StatusActions({ encounterId, encounterType }: { encounte
                 placeholder="Optional — if filled, the case moves to the follow-up queue"
               />
             </div>
+          )}
+          {mode === "escalate" && (
+            <p className="text-xs text-muted">This clinic encounter will be escalated to the emergency stream. Patient data stays as-is.</p>
+          )}
+          {mode === "open-follow-up" && (
+            <p className="text-xs text-muted">A new clinic encounter will be opened for this patient, linked to this follow-up.</p>
           )}
 
           {error && <p className="text-xs text-danger">{error}</p>}

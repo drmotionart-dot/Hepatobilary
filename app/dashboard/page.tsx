@@ -5,6 +5,7 @@ import OnShiftCard from "@/components/OnShiftCard";
 import CalendarCard from "@/components/dashboard/CalendarCard";
 import Card from "@/components/ui/Card";
 import Badge from "@/components/ui/Badge";
+import ShiftKeyCard from "@/components/shift-key/ShiftKeyCard";
 import { requireSession, apiFetchServer } from "@/lib/api";
 import { formatDate } from "@/lib/format";
 
@@ -44,6 +45,8 @@ export default async function DashboardPage() {
       <div className="max-w-3xl mx-auto p-4 md:p-8 flex flex-col gap-6">
         <OnShiftCard dayType={dayType} activeShift={activeShift} people={people} serverNow={serverNow} shift={shift} />
 
+        <ShiftKeyCard />
+
         <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
           <Card className="!p-4">
             <p className="text-xs text-muted">Active ward patients</p>
@@ -53,7 +56,8 @@ export default async function DashboardPage() {
             <p className="text-xs text-muted">Follow-ups pending</p>
             <p className="text-2xl font-semibold mt-1">{counters.followUpPending}</p>
           </Card>
-          <Link href="/lab-import/needs-review" className="col-span-2 md:col-span-1">
+          {session.role !== "intern" && (
+          <Link href="/admin/lab-review" className="col-span-2 md:col-span-1">
             <Card className="!p-4 h-full">
               <p className="text-xs text-muted">Lab imports awaiting review</p>
               <p className="text-2xl font-semibold mt-1">
@@ -61,6 +65,7 @@ export default async function DashboardPage() {
               </p>
             </Card>
           </Link>
+          )}
         </div>
 
         <CalendarCard monthLabel={monthLabel} days={month.days} todayKey={todayKey} />

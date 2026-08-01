@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/Label";
 import { Select } from "@/components/ui/Select";
 import { Textarea } from "@/components/ui/Textarea";
 import { CASE_TYPES } from "@/lib/constants";
-import { apiFetch } from "@/lib/client-api";
+import { apiFetch, isQueuedResponse } from "@/lib/client-api";
 import { smokerOrders } from "@/lib/auto-triggers";
 
 export default function EmergencyAssessmentForm() {
@@ -30,9 +30,17 @@ export default function EmergencyAssessmentForm() {
   const [presentingLine, setPresentingLine] = useState("");
   const [main, setMain] = useState("");
   const [duration, setDuration] = useState("");
+  const [associated, setAssociated] = useState("");
+  const [pertinentNegatives, setPertinentNegatives] = useState("");
+  const [bowelHabit, setBowelHabit] = useState<"normal" | "constipation" | "diarrhea">("normal");
+  const [dysuria, setDysuria] = useState(false);
+  const [hcv, setHcv] = useState(false);
+  const [hbv, setHbv] = useState(false);
+  const [hiv, setHiv] = useState(false);
   const [bp, setBp] = useState("");
   const [hr, setHr] = useState("");
   const [consciousness, setConsciousness] = useState("A");
+  const [investigations, setInvestigations] = useState("");
   const [recommendation, setRecommendation] = useState("");
   const [treatmentOrders, setTreatmentOrders] = useState("");
 
@@ -42,13 +50,22 @@ export default function EmergencyAssessmentForm() {
   const [patientAge, setPatientAge] = useState(0);
   const [ecgRequired, setEcgRequired] = useState(false);
   const [echoRequired, setEchoRequired] = useState(false);
+  const [ecgDone, setEcgDone] = useState(false);
+  const [echoDone, setEchoDone] = useState(false);
   const [smoker, setSmoker] = useState(false);
 
   useEffect(() => {
     if (step === "note") {
       setEcgRequired(patientAge > 40);
       setEchoRequired(patientAge > 60);
+      apiFetch(`/api/case-type-templates`).then((r) => r.json()).then((templates: any[]) => {
+        const t = templates.find((x) => x.name.toLowerCase() === caseType) || templates.find((x) => x.name.toLowerCase() === "generic") || null;
+        if (t?.dietInstruction && !treatmentOrders.toLowerCase().includes(t.dietInstruction.toLowerCase())) {
+          setTreatmentOrders((prev) => (prev ? `${prev}\nDiet: ${t.dietInstruction}` : `Diet: ${t.dietInstruction}`));
+        }
+      }).catch(() => {});
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [step, patientAge]);
 
   async function search(e?: React.FormEvent) {
@@ -133,11 +150,19 @@ export default function EmergencyAssessmentForm() {
         encounterId: selected._id,
         context: "emergency-assessment",
         presentingLine,
-        complaint: { main, duration, associated: [], pertinentNegatives: [], bowelHabit: "normal", dysuria: false, viralHepatitis: { hcv: false, hbv: false, hiv: false } },
-        generalExam: { consciousness, bp, hr: Number(hr) || 0, ecgRequired, ecgDone: false, echoRequired, echoDone: false },
+        complaint: {
+          main,
+          duration,
+          associated: associated.split("\n").map((s) => s.trim()).filter(Boolean),
+          pertinentNegatives: pertinentNegatives.split("\n").map((s) => s.trim()).filter(Boolean),
+          bowelHabit,
+          dysuria,
+          viralHepatitis: { hcv, hbv, hiv },
+        },
+        generalExam: { consciousness, bp, hr: Number(hr) || 0, ecgRequired, ecgDone, echoRequired, echoDone },
         localExam: { templateUsed: caseType === "custom" ? "generic" : caseType, fields: {} },
         riskFactors: { smoker },
-        investigationsOrdered: [],
+        investigationsOrdered: investigations.split("\n").map((s) => s.trim()).filter(Boolean),
         recommendation,
         treatmentOrders: orders,
       }),
@@ -149,8 +174,10 @@ export default function EmergencyAssessmentForm() {
       setError(d.error || "Could not save assessment");
       return;
     }
-    router.push(`/ward/${selected._id}`);
-    router.refresh();
+    if (!isQueuedResponse(res)) {
+      router.push(`/ward/${selected._id}`);
+      router.refresh();
+    }
   }
 
   if (step === "note") {
@@ -186,6 +213,43 @@ export default function EmergencyAssessmentForm() {
                 <option value="obtunded">Obtunded</option>
               </Select>
             </div>
+            <div>
+              <Label>Bowel habit</Label>
+              <Select value={bowelHabit} onChange={(e) => setBowelHabit(e.target.value as any)}>
+                <option value="normal">Normal</option>
+                <option value="constipation">Constipation</option>
+                <option value="diarrhea">Diarrhea</option>
+              </Select>
+            </div>
+          </div>
+          <div className="flex flex-wrap items-center gap-4 rounded-lg bg-ink/[0.03] p-3 text-sm">
+            <label className="flex items-center gap-2">
+              <input type="checkbox" checked={dysuria} onChange={(e) => setDysuria(e.target.checked)} />
+              <span>Dysuria</span>
+            </label>
+            <span className="text-xs text-muted">Viral hepatitis:</span>
+            <label className="flex items-center gap-2">
+              <input type="checkbox" checked={hcv} onChange={(e) => setHcv(e.target.checked)} />
+              <span>HCV</span>
+            </label>
+            <label className="flex items-center gap-2">
+              <input type="checkbox" checked={hbv} onChange={(e) => setHbv(e.target.checked)} />
+              <span>HBV</span>
+            </label>
+            <label className="flex items-center gap-2">
+              <input type="checkbox" checked={hiv} onChange={(e) => setHiv(e.target.checked)} />
+              <span>HIV</span>
+            </label>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <Label>Associated symptoms (one per line)</Label>
+              <Textarea rows={2} value={associated} onChange={(e) => setAssociated(e.target.value)} />
+            </div>
+            <div>
+              <Label>Pertinent negatives (one per line)</Label>
+              <Textarea rows={2} value={pertinentNegatives} onChange={(e) => setPertinentNegatives(e.target.value)} />
+            </div>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 rounded-lg bg-ink/[0.03] p-3">
             <label className="flex items-center gap-2 text-sm">
@@ -194,15 +258,27 @@ export default function EmergencyAssessmentForm() {
               {patientAge > 40 && <span className="text-xs text-muted">(auto — age {patientAge})</span>}
             </label>
             <label className="flex items-center gap-2 text-sm">
+              <input type="checkbox" checked={ecgDone} onChange={(e) => setEcgDone(e.target.checked)} />
+              <span>ECG done</span>
+            </label>
+            <label className="flex items-center gap-2 text-sm">
               <input type="checkbox" checked={echoRequired} onChange={(e) => setEchoRequired(e.target.checked)} />
               <span>Echo required</span>
               {patientAge > 60 && <span className="text-xs text-muted">(auto — age {patientAge})</span>}
+            </label>
+            <label className="flex items-center gap-2 text-sm">
+              <input type="checkbox" checked={echoDone} onChange={(e) => setEchoDone(e.target.checked)} />
+              <span>Echo done</span>
             </label>
             <label className="flex items-center gap-2 text-sm">
               <input type="checkbox" checked={smoker} onChange={(e) => setSmoker(e.target.checked)} />
               <span>Smoker</span>
               {smoker && <span className="text-xs text-muted">(adds Atrovent + Pulmicort)</span>}
             </label>
+          </div>
+          <div>
+            <Label>Investigations ordered (one per line)</Label>
+            <Textarea rows={2} value={investigations} onChange={(e) => setInvestigations(e.target.value)} placeholder="CBC, LFTs, Ultrasound abdomen…" />
           </div>
           <div>
             <Label>Recommendation</Label>

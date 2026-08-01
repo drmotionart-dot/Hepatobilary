@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
 import { Select } from "@/components/ui/Select";
 import { Textarea } from "@/components/ui/Textarea";
-import { apiFetch } from "@/lib/client-api";
+import { apiFetch, safeRefresh } from "@/lib/client-api";
 
 const MODALITIES = ["CT", "US", "Doppler", "MRI", "X-ray", "Mammography"];
 
@@ -42,7 +42,7 @@ export default function AddImagingForm({ encounterId }: { encounterId: string })
     }
     setOpen(false);
     setPartToBeExamined("");
-    router.refresh();
+    safeRefresh(router, res);
   }
 
   if (!open) return <Button size="sm" variant="secondary" onClick={() => setOpen(true)}>+ Request imaging</Button>;

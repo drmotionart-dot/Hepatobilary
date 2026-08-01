@@ -16,6 +16,8 @@ export default async function LabImportPage() {
   const session = await requireSession();
   if (!session) redirect("/login");
 
+  const canReview = session.role === "resident" || session.role === "admin";
+
   const imports = (await apiFetchServer<LabImportWithPatient[]>("/api/lab-import")) || [];
   const recent = imports.slice(0, 20);
 
@@ -26,9 +28,11 @@ export default async function LabImportPage() {
           title="Lab imports"
           subtitle="Upload pathology PDFs — patient code auto-matches to records"
           action={
-            <Link href="/lab-import/needs-review" className="text-sm text-primary font-medium">
-              Review queue →
-            </Link>
+            canReview ? (
+              <Link href="/admin/lab-review" className="text-sm text-primary font-medium">
+                Review queue →
+              </Link>
+            ) : undefined
           }
         />
 

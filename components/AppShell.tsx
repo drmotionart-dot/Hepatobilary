@@ -1,7 +1,7 @@
-import Link from "next/link";
 import { requireSession } from "@/lib/api";
 import TopBar from "@/components/TopBar";
 import MobileNav from "@/components/MobileNav";
+import SidebarNav from "@/components/SidebarNav";
 import { DEPARTMENT_NAME } from "@/lib/constants";
 
 const NAV = [
@@ -10,13 +10,19 @@ const NAV = [
   { href: "/clinic", label: "Clinic" },
   { href: "/emergency", label: "Emergency" },
   { href: "/lab-import", label: "Lab import" },
+  { href: "/roster", label: "Roster" },
 ];
 
 export default async function AppShell({ children }: { children: React.ReactNode }) {
   const session = await requireSession();
   const role = session?.role;
-  const isAdmin = role === "admin";
   const isResidentOrAbove = role === "admin" || role === "resident";
+  const isAdmin = role === "admin";
+
+  // Spec §7: the Admin hub is a resident+admin area. The hub page itself is
+  // role-aware (residents see Users, Audit log and Lab review; admins see all).
+  const adminItems = isResidentOrAbove ? [{ href: "/admin", label: "Admin" }] : [];
+  const mobileExtra = [...(role === "intern" ? [] : adminItems)];
 
   return (
     <div className="min-h-screen flex flex-col bg-bg text-ink">
@@ -32,61 +38,14 @@ export default async function AppShell({ children }: { children: React.ReactNode
         {/* Desktop sidebar */}
         <aside className="hidden md:flex w-56 flex-col border-r border-border bg-surface p-4 print:hidden">
           <div className="mb-8 px-2 text-lg font-semibold text-primary">{DEPARTMENT_NAME}</div>
-          <nav className="flex flex-col gap-1">
-            {NAV.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className="rounded-lg px-3 py-2 text-sm font-medium hover:bg-primary/10 hover:text-primary transition-colors"
-              >
-                {item.label}
-              </Link>
-            ))}
-            <Link
-              href="/roster"
-              className="rounded-lg px-3 py-2 text-sm font-medium hover:bg-primary/10 hover:text-primary transition-colors"
-            >
-              Roster
-            </Link>
-
-            {(isResidentOrAbove) && (
-              <>
-                <Link
-                  href="/lab-import/needs-review"
-                  className="rounded-lg px-3 py-2 text-sm font-medium text-muted hover:bg-primary/10 hover:text-primary transition-colors"
-                >
-                  Lab review queue
-                </Link>
-                <Link
-                  href="/admin/audit"
-                  className="rounded-lg px-3 py-2 text-sm font-medium text-muted hover:bg-primary/10 hover:text-primary transition-colors"
-                >
-                  Audit log
-                </Link>
-                <Link
-                  href="/admin/users"
-                  className="rounded-lg px-3 py-2 text-sm font-medium text-muted hover:bg-primary/10 hover:text-primary transition-colors"
-                >
-                  Users & approvals
-                </Link>
-              </>
-            )}
-
-            {isAdmin && (
-              <Link
-                href="/admin"
-                className="mt-4 rounded-lg px-3 py-2 text-sm font-medium text-muted hover:bg-primary/10 hover:text-primary transition-colors"
-              >
-                Admin
-              </Link>
-            )}
-          </nav>
+          <SidebarNav items={NAV} />
+          {isResidentOrAbove && <SidebarNav items={adminItems} className="mt-4" />}
         </aside>
 
         <main className="flex-1 pb-16 md:pb-0">{children}</main>
 
         {/* Mobile bottom tab bar */}
-        <MobileNav items={NAV} extra={[{ href: "/roster", label: "Roster" }]} className="print:hidden" />
+        <MobileNav items={NAV} extra={mobileExtra} className="print:hidden" />
       </div>
     </div>
   );

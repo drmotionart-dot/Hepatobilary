@@ -6,7 +6,7 @@ import Button from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
 import { Textarea } from "@/components/ui/Textarea";
-import { apiFetch } from "@/lib/client-api";
+import { apiFetch, safeRefresh } from "@/lib/client-api";
 
 export default function AddTreatmentForm({ encounterId }: { encounterId: string }) {
   const router = useRouter();
@@ -37,7 +37,7 @@ export default function AddTreatmentForm({ encounterId }: { encounterId: string 
     setOpen(false);
     setTreatment("");
     setOtherRecommendations("");
-    router.refresh();
+    safeRefresh(router, res);
   }
 
   if (!open) return <Button size="sm" variant="secondary" onClick={() => setOpen(true)}>+ Log treatment</Button>;

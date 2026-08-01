@@ -2,20 +2,24 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 import Badge from "@/components/ui/Badge";
 import { formatDate } from "@/lib/format";
 import { apiFetch } from "@/lib/client-api";
+import CreateAccountModal from "@/components/admin/CreateAccountModal";
 
 export default function UsersManager({
   users,
   pending,
   canImport = false,
+  canCreate = false,
 }: {
   users: any[];
   pending: any[];
   canImport?: boolean;
+  canCreate?: boolean;
 }) {
   const router = useRouter();
   const [file, setFile] = useState<File | null>(null);
@@ -23,6 +27,7 @@ export default function UsersManager({
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [importResult, setImportResult] = useState<any>(null);
+  const [creating, setCreating] = useState(false);
 
   async function act(userId: string, action: string) {
     setError("");
@@ -124,6 +129,23 @@ export default function UsersManager({
       </Card>
       )}
 
+      {/* Direct account creation (admin only, spec 11.8) */}
+      {canCreate && (
+        <Card
+          title="Create account"
+          action={
+            <Button size="sm" onClick={() => setCreating(true)}>
+              + Create
+            </Button>
+          }
+        >
+          <p className="text-xs text-muted">
+            Manually create an intern or resident account — with an initial capability grant for interns if needed.
+            Bulk creation happens through the Excel rotation import above.
+          </p>
+        </Card>
+      )}
+
       {/* Pending approvals */}
       {pending.length > 0 && (
         <Card title={`Pending approvals (${pending.length})`}>
@@ -134,7 +156,10 @@ export default function UsersManager({
                   <p className="text-sm font-medium" dir="auto">{u.fullName}</p>
                   <p className="text-xs text-muted">{u.email} · {u.role} · requested {formatDate(u.createdAt)}</p>
                 </div>
-                <Button size="sm" onClick={() => act(u._id, "approve")}>Approve</Button>
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <Button size="sm" onClick={() => act(u._id, "approve")}>Approve</Button>
+                  <Button size="sm" variant="secondary" onClick={() => act(u._id, "reject")}>Reject</Button>
+                </div>
               </li>
             ))}
           </ul>
@@ -150,15 +175,27 @@ export default function UsersManager({
             {users.map((u) => (
               <li key={u._id} className="py-2.5 flex items-center justify-between gap-2">
                 <div className="min-w-0">
-                  <p className="text-sm font-medium" dir="auto">{u.fullName}</p>
+                  <Link href={`/admin/users/${u._id}`} className="text-sm font-medium hover:text-primary" dir="auto">
+                    {u.fullName}
+                  </Link>
                   <p className="text-xs text-muted truncate">
                     {u.loginId || u.email} · {u.role} · {u.accountType}
                     {u.phone ? ` · ${u.phone}` : ""}
                     {u.expiresAt ? ` · expires ${formatDate(u.expiresAt)}` : ""}
                   </p>
+                  {Array.isArray(u.grantedCapabilities) && u.grantedCapabilities.length > 0 && (
+                    <div className="mt-1 flex flex-wrap gap-1">
+                      {u.grantedCapabilities.map((c: string) => (
+                        <Badge key={c} tone="info" className="!px-1.5 !py-0 text-[10px]">{c.replace(/-/g, " ")}</Badge>
+                      ))}
+                    </div>
+                  )}
                 </div>
                 <div className="flex items-center gap-1.5 shrink-0">
                   <Badge tone={statusTone(u.status) as any}>{u.status}</Badge>
+                  <Link href={`/admin/users/${u._id}`}>
+                    <Button size="sm" variant="secondary">View</Button>
+                  </Link>
                   {u.status === "active" && (
                     <Button size="sm" variant="secondary" onClick={() => act(u._id, "remove")}>Remove</Button>
                   )}
@@ -171,6 +208,8 @@ export default function UsersManager({
           </ul>
         )}
       </Card>
+
+      {creating && <CreateAccountModal onClose={() => setCreating(false)} />}
     </div>
   );
 }

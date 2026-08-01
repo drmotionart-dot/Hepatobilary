@@ -43,6 +43,7 @@ export default async function AdminAuditPage({ searchParams }: { searchParams: R
                     <th className="py-2 pr-3">User</th>
                     <th className="py-2 pr-3">Collection</th>
                     <th className="py-2 pr-3">Action</th>
+                    <th className="py-2 pr-3">Shift key</th>
                     <th className="py-2">Summary</th>
                   </tr>
                 </thead>
@@ -56,6 +57,18 @@ export default async function AdminAuditPage({ searchParams }: { searchParams: R
                         <span className={`text-xs font-medium ${l.action === "create" ? "text-success" : l.action === "delete" ? "text-danger" : "text-warning"}`}>
                           {l.action}
                         </span>
+                      </td>
+                      <td className="py-2 pr-3">
+                        {l.shiftKey ? (
+                          <span className={`inline-flex items-center gap-1.5 font-mono text-xs ${l.shiftKeyMatched === false ? "text-danger" : "text-success"}`}>
+                            {l.shiftKey}
+                            <span className="font-sans">
+                              {l.shiftKeyMatched === false ? "stale" : "ok"}
+                            </span>
+                          </span>
+                        ) : (
+                          <span className="text-xs text-muted">—</span>
+                        )}
                       </td>
                       <td className="py-2 text-xs text-ink/70">{l.summary}</td>
                     </tr>

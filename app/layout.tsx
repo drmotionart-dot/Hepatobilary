@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import Script from "next/script";
 import OfflineQueueBanner from "@/components/OfflineQueueBanner";
 import RegisterSW from "@/components/RegisterSW";
+import ShiftKeyProvider from "@/components/shift-key/ShiftKeyProvider";
 import { DEPARTMENT_NAME } from "@/lib/constants";
 // Self-hosted IBM Plex family (fontsource) so builds don't depend on Google
 // Fonts at build time. Same families as before: sans + arabic + mono.
@@ -43,7 +44,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </Script>
         <OfflineQueueBanner />
         <RegisterSW />
-        {children}
+        <ShiftKeyProvider>{children}</ShiftKeyProvider>
       </body>
     </html>
   );

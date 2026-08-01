@@ -20,6 +20,7 @@ export default async function AdminUsersPage() {
           users={users}
           pending={users.filter((u) => u.status === "pending-approval")}
           canImport={session.role === "admin"}
+          canCreate={session.role === "admin"}
         />
       </div>
     </AppShell>

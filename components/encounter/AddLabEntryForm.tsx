@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
 import { Select } from "@/components/ui/Select";
 import { LAB_CATEGORIES } from "@/lib/constants";
-import { apiFetch } from "@/lib/client-api";
+import { apiFetch, safeRefresh } from "@/lib/client-api";
 
 export default function AddLabEntryForm({ encounterId }: { encounterId: string }) {
   const router = useRouter();
@@ -43,7 +43,7 @@ export default function AddLabEntryForm({ encounterId }: { encounterId: string }
     setValue("");
     setUnit("");
     setRefRange("");
-    router.refresh();
+    safeRefresh(router, res);
   }
 
   if (!open) return <Button size="sm" variant="secondary" onClick={() => setOpen(true)}>+ Add result</Button>;

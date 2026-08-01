@@ -10,58 +10,96 @@ import { Textarea } from "@/components/ui/Textarea";
 import Badge from "@/components/ui/Badge";
 import { apiFetch } from "@/lib/client-api";
 
-export default function TemplateManager({ templates }: { templates: any[] }) {
+type Template = any;
+
+export default function TemplateManager({ templates }: { templates: Template[] }) {
   const router = useRouter();
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingActive, setEditingActive] = useState(true);
   const [name, setName] = useState("");
   const [labPanelPreset, setLabPanelPreset] = useState("");
   const [dietInstruction, setDietInstruction] = useState("");
   const [leFields, setLeFields] = useState<string[]>([]);
   const [leLabels, setLeLabels] = useState<Record<string, string>>({});
   const [riskFields, setRiskFields] = useState<string[]>([]);
+  const [leOriginal, setLeOriginal] = useState<Record<string, { type: string; options?: string[] }>>({});
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  async function createTemplate(e: React.FormEvent) {
-    e.preventDefault();
-    setError("");
-    setLoading(true);
-
-    const leChecklist = leFields.map((f) => ({
-      fieldKey: f,
-      label: leLabels[f] || f,
-      type: "boolean" as const,
-    }));
-
-    const res = await apiFetch("/api/case-type-templates", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        name,
-        leChecklist,
-        riskFactorChecklist: riskFields.map((f) => ({ fieldKey: f, label: f })),
-        labPanelPreset: labPanelPreset.split("\n").map((s) => s.trim()).filter(Boolean),
-        dietInstruction,
-      }),
-    });
-    setLoading(false);
-
-    if (!res.ok) {
-      const d = await res.json();
-      setError(d.error || "Could not create template");
-      return;
-    }
+  function resetForm() {
+    setEditingId(null);
     setName("");
     setLabPanelPreset("");
     setDietInstruction("");
     setLeFields([]);
+    setLeLabels({});
     setRiskFields([]);
+    setLeOriginal({});
+  }
+
+  function startEdit(t: Template) {
+    setEditingId(t._id);
+    setEditingActive(Boolean(t.active));
+    setName(t.name || "");
+    setLabPanelPreset((t.labPanelPreset || []).join("\n"));
+    setDietInstruction(t.dietInstruction || "");
+    setLeFields((t.leChecklist || []).map((f: any) => f.fieldKey));
+    setLeLabels(Object.fromEntries((t.leChecklist || []).map((f: any) => [f.fieldKey, f.label])));
+    setRiskFields((t.riskFactorChecklist || []).map((f: any) => f.fieldKey));
+    setLeOriginal(Object.fromEntries((t.leChecklist || []).map((f: any) => [f.fieldKey, { type: f.type, options: f.options }])));
+    setError("");
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+
+    const leChecklist = leFields.map((f) => {
+      const orig = leOriginal[f];
+      return {
+        fieldKey: f,
+        label: leLabels[f] || f,
+        type: orig?.type || "boolean",
+        ...(orig?.type === "select" && orig.options ? { options: orig.options } : {}),
+      };
+    });
+
+    const payload = {
+      name,
+      leChecklist,
+      riskFactorChecklist: riskFields.map((f) => ({ fieldKey: f, label: f })),
+      labPanelPreset: labPanelPreset.split("\n").map((s) => s.trim()).filter(Boolean),
+      dietInstruction,
+      ...(editingId ? { active: editingActive } : {}),
+    };
+
+    const res = editingId
+      ? await apiFetch(`/api/case-type-templates/${editingId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        })
+      : await apiFetch("/api/case-type-templates", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+    setLoading(false);
+
+    if (!res.ok) {
+      const d = await res.json();
+      setError(d.error || "Could not save template");
+      return;
+    }
+    resetForm();
     router.refresh();
   }
 
   return (
     <div className="flex flex-col gap-5">
-      <Card title="Create a case type template">
-        <form onSubmit={createTemplate} className="flex flex-col gap-3">
+      <Card title={editingId ? "Edit case type template" : "Create a case type template"}>
+        <form onSubmit={handleSubmit} className="flex flex-col gap-3">
           <div>
             <Label>Name (e.g. Hernia, Biliary, Hepatic, Generic)</Label>
             <Input value={name} onChange={(e) => setName(e.target.value)} required />
@@ -99,7 +137,12 @@ export default function TemplateManager({ templates }: { templates: any[] }) {
 
           {error && <p className="text-xs text-danger">{error}</p>}
 
-          <Button type="submit" loading={loading}>{loading ? "Saving…" : "Create template"}</Button>
+          <div className="flex gap-2">
+            <Button type="submit" loading={loading}>{loading ? "Saving…" : editingId ? "Save changes" : "Create template"}</Button>
+            {editingId && (
+              <Button variant="ghost" onClick={() => { resetForm(); setError(""); }}>Cancel edit</Button>
+            )}
+          </div>
         </form>
       </Card>
 
@@ -111,6 +154,7 @@ export default function TemplateManager({ templates }: { templates: any[] }) {
                 <p className="text-sm font-semibold">{t.name}</p>
                 <div className="flex items-center gap-2">
                   <Badge tone={t.active ? "success" : "default"}>{t.active ? "active" : "inactive"}</Badge>
+                  <Button size="sm" variant="secondary" onClick={() => startEdit(t)}>Edit</Button>
                   <Button
                     size="sm"
                     variant="secondary"
