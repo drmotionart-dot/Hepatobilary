@@ -220,8 +220,14 @@ export async function apiFetch(path: string, options: RequestInit = {}): Promise
   traceResponse(path, method, res);
 
   if (res.status === 401) {
+    // Only hard-redirect when a session actually expired mid-use (a token was
+    // present). An anonymous request (no token) legitimately gets a 401 — e.g.
+    // layout-mounted components probing /api/auth/me on the login page — and
+    // must NOT trigger a full navigation to /login, which would remount them
+    // and loop the reload forever.
+    const hadToken = !!getToken();
     clearToken();
-    if (typeof window !== "undefined" && !path.includes("/auth/login")) {
+    if (typeof window !== "undefined" && hadToken && !path.includes("/auth/login")) {
       window.location.href = "/login";
     }
   }
