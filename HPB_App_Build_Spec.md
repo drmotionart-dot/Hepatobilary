@@ -406,7 +406,7 @@ All of the above are stored in `CaseTypeTemplate` documents, editable from an ad
 | Clinic (Thu) | Ward resident + Clinic resident |
 | Emergency | Ward resident + Emergency-route resident |
 
-The "who's on today" screen resolves `DayTypeCalendar` for the selected date, pulls matching `ShiftAssignment`s, and highlights whichever shift (Long/Night) is currently active based on the clock.
+The "who's on today" screen resolves `DayTypeCalendar` for the selected date, pulls matching `ShiftAssignment`s, and highlights whichever shift (Long/Night) is currently active based on the clock. Each 24-hour shift runs 08:00 → 08:00 and is split into the **Long shift (08:00–20:00)** and the **Night shift (20:00–08:00)**; the dashboard clock shows the live AM/PM time plus the active half. All shift/roster/day-type dates are keyed in the **department timezone** (`DEPARTMENT_TZ`, default `Africa/Cairo`) — never the server's UTC — so the 08:00/20:00 boundaries match the hospital's wall clock.
 
 ### 6.1 Long-range roster pre-fill (Wardyati-inspired)
 Rather than filling shifts day by day as they approach, the roster should be plannable far ahead — up to 8 weeks, matching how وردياتي (Wardyati) works for intern doctor scheduling in Egyptian hospitals (a coordinator generates the full shift structure ahead of time, then names get filled or self-booked into open slots).

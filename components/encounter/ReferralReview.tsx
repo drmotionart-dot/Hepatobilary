@@ -108,7 +108,7 @@ export default function ReferralReview({ referral, role }: { referral: ReferralC
           </button>
         )}
         {referral.reviewedAt && (
-          <p className="text-xs text-muted mt-1">Reviewed {new Date(referral.reviewedAt).toLocaleString("en-GB")}</p>
+          <p className="text-xs text-muted mt-1">Reviewed {new Date(referral.reviewedAt).toLocaleString("en-GB", { hour12: true })}</p>
         )}
       </div>
     );

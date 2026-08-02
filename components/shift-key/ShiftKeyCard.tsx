@@ -93,7 +93,7 @@ export default function ShiftKeyCard({ role: roleProp }: { role?: string }) {
           {current?.generatedAt && (
             <div className="text-xs text-muted">
               <p>Active key</p>
-              <p>{new Date(current.generatedAt).toLocaleString("en-GB")}</p>
+              <p>{new Date(current.generatedAt).toLocaleString("en-GB", { hour12: true })}</p>
             </div>
           )}
         </div>

@@ -5,7 +5,10 @@ export const DEPARTMENT_NAME = "HPB Department";
 export const APP_NAME = "HPB";
 
 // Shift model (spec §6): a 24-hour shift starts and ends at 08:00 local time.
+// The two halves are the LONG shift (08:00–20:00) and the NIGHT shift
+// (20:00–08:00).
 export const SHIFT_START_HOUR = 8;
+export const NIGHT_START_HOUR = 20;
 
 // Faded guide examples shown in name text boxes (both script styles).
 export const NAME_PLACEHOLDER = "Abdelrahman / Nour";

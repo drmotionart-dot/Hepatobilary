@@ -1,22 +1,30 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { SHIFT_START_HOUR } from "@/lib/constants";
+import { NIGHT_START_HOUR, SHIFT_START_HOUR } from "@/lib/constants";
 
-type ShiftInfo = { startHour: number; activeDateKey: string; beforeStart: boolean };
+type ShiftInfo = { startHour: number; nightStartHour: number; activeDateKey: string; isNight: boolean };
 
 function fmtTime(d: Date) {
-  return d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+  return d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", second: "2-digit", hour12: true });
 }
 
 function fmtDate(d: Date) {
   return d.toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short", year: "numeric" });
 }
 
+// "8" → "8:00 AM", "20" → "8:00 PM" — 12-hour clock for the shift window.
+function fmtHour(h: number) {
+  const hour12 = h % 12 || 12;
+  const ampm = h < 12 ? "AM" : "PM";
+  return `${hour12}:00 ${ampm}`;
+}
+
 // Built-in clock for the dashboard. It ticks locally but initializes from the
 // server's clock so SSR and the first client render are identical (no hydration
-// mismatch). It renders the live time plus the 08:00 shift window — before
-// 08:00 the previous day's 24-hour shift is still the active one.
+// mismatch). It renders the live time plus the current shift half — the LONG
+// shift (08:00–20:00) or the NIGHT shift (20:00–08:00), anchored to the
+// 08:00 shift-day boundary the server resolves.
 export default function ShiftClock({ serverNow, shift }: { serverNow?: string; shift?: ShiftInfo }) {
   const [now, setNow] = useState<Date>(() => (serverNow ? new Date(serverNow) : new Date()));
 
@@ -26,7 +34,8 @@ export default function ShiftClock({ serverNow, shift }: { serverNow?: string; s
   }, []);
 
   const startHour = shift?.startHour ?? SHIFT_START_HOUR;
-  const beforeStart = shift?.beforeStart ?? false;
+  const nightStartHour = shift?.nightStartHour ?? NIGHT_START_HOUR;
+  const isNight = shift?.isNight ?? false;
   const activeDate = shift?.activeDateKey ?? "";
 
   return (
@@ -37,10 +46,12 @@ export default function ShiftClock({ serverNow, shift }: { serverNow?: string; s
       </div>
       <div className="text-right text-xs min-w-0">
         <div className="font-medium text-primary">
-          Shift window {String(startHour).padStart(2, "0")}:00 → {String(startHour).padStart(2, "0")}:00
+          {isNight
+            ? `Night shift window ${fmtHour(nightStartHour)} → ${fmtHour(startHour)}`
+            : `Long shift window ${fmtHour(startHour)} → ${fmtHour(nightStartHour)}`}
         </div>
         <div className="mt-0.5 text-muted">
-          {beforeStart ? `Night shift — from ${activeDate || "yesterday"}` : `Day shift — ${activeDate || "today"}`}
+          {isNight ? `Night shift — from ${activeDate || "yesterday"}` : `Long shift — ${activeDate || "today"}`}
         </div>
       </div>
     </div>

@@ -25,7 +25,7 @@ type DashboardData = {
     patient: { fullName: string; medicalNumber: string } | null;
   }[];
   serverNow: string;
-  shift: { startHour: number; activeDateKey: string; beforeStart: boolean };
+  shift: { startHour: number; nightStartHour: number; activeDateKey: string; isNight: boolean };
   month: {
     days: { date: string; dayType: string; surgeryOverlay: boolean; assigned: number }[];
   };

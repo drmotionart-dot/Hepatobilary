@@ -1,5 +1,5 @@
 type ShiftPerson = { id: string; name: string; category: string; startTime?: string | null; endTime?: string | null };
-type ShiftInfo = { startHour: number; activeDateKey: string; beforeStart: boolean };
+type ShiftInfo = { startHour: number; nightStartHour: number; activeDateKey: string; isNight: boolean };
 import Link from "next/link";
 import EmptyState from "@/components/ui/EmptyState";
 import ShiftClock from "@/components/dashboard/ShiftClock";
@@ -35,6 +35,15 @@ export default function OnShiftCard({
     if (!m) return null;
     return parseInt(m[1], 10) * 60 + parseInt(m[2], 10);
   }
+  // "16:00" → "4:00 PM" for the shift-window tooltip.
+  function fmtHm(t: string | null | undefined): string {
+    if (!t) return "";
+    const m = /^(\d{1,2}):(\d{2})/.exec(t);
+    if (!m) return t;
+    const h = parseInt(m[1], 10);
+    const h12 = h % 12 || 12;
+    return `${h12}:${m[2]} ${h < 12 ? "AM" : "PM"}`;
+  }
 
   return (
     <div id="on-shift-card" className="rounded-2xl bg-surface p-5 shadow-sm border border-border">
@@ -64,7 +73,7 @@ export default function OnShiftCard({
                     <span
                       aria-hidden
                       className={`h-1.5 w-1.5 rounded-full shrink-0 ${inWindow ? "bg-success" : "bg-border"}`}
-                      title={inWindow ? "On duty right now" : `Shift window ${p.startTime}–${p.endTime}`}
+                      title={inWindow ? "On duty right now" : `Shift window ${fmtHm(p.startTime)}–${fmtHm(p.endTime)}`}
                     />
                   ) : null}
                   {linkProfiles && p.id ? (
