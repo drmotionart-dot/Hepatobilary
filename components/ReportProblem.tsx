@@ -1,15 +1,18 @@
 "use client";
 
-// "Report a problem" (top-bar, every authenticated page). Deliberately
-// low-friction: one textarea, no shift-key gate. Context (page URL, user,
-// role, time, correlation id) is captured automatically. If the app is offline
-// the report is queued and replayed like any other mutation.
+// "Report a problem" (top-bar, every authenticated page — all roles).
+// Deliberately low-friction: one textarea, no shift-key gate. Everything else
+// is captured automatically — page URL, user, role, time, timezone, browser,
+// device, pending offline syncs, correlation id, and the last JS console
+// logs/errors (lib/diagnostics.ts, installed at app boot). If the app is
+// offline the report is queued and replayed like any other mutation.
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Button from "@/components/ui/Button";
 import { Label } from "@/components/ui/Label";
 import { apiFetch, getCorrelationId, isQueuedResponse } from "@/lib/client-api";
+import { snapshotDiagnostics, getRecentConsole } from "@/lib/diagnostics";
 
 const ROLE_LABELS: Record<string, string> = {
   admin: "Admin",
@@ -26,6 +29,8 @@ export default function ReportProblem({ user }: { user: UserInfo | null }) {
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState<{ id: string; queued: boolean } | null>(null);
+
+  const consoleCount = getRecentConsole().length;
 
   const context = {
     url: typeof window !== "undefined" ? window.location.href : "",
@@ -44,6 +49,7 @@ export default function ReportProblem({ user }: { user: UserInfo | null }) {
         body: JSON.stringify({
           description: description.trim(),
           url: typeof window !== "undefined" ? window.location.href : "",
+          context: snapshotDiagnostics(),
         }),
       });
       if (isQueuedResponse(res)) {
@@ -127,6 +133,9 @@ export default function ReportProblem({ user }: { user: UserInfo | null }) {
                   </p>
                   <p className="mt-1">
                     <span className="font-medium text-ink/70">Time:</span> {context.time} · <span className="font-mono">#{context.correlationId.slice(-8)}</span>
+                  </p>
+                  <p className="mt-1">
+                    <span className="font-medium text-ink/70">Auto-collected:</span> device · browser · timezone · {consoleCount} recent log/error line{consoleCount === 1 ? "" : "s"} · offline syncs
                   </p>
                 </div>
                 {error && <p className="text-xs text-danger">{error}</p>}

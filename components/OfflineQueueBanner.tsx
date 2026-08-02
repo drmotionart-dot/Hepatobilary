@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import Button from "@/components/ui/Button";
 import { getPendingCount, isOnline, subscribe } from "@/lib/offline-queue";
 import { flushOfflineQueue, initOfflineQueue } from "@/lib/client-api";
+import { installDiagnostics } from "@/lib/diagnostics";
 
 // Spec §8 "offline indicator": a small, honest, unobtrusive banner when a
 // submission is queued locally rather than confirmed saved.
@@ -13,6 +14,9 @@ export default function OfflineQueueBanner() {
   const [syncing, setSyncing] = useState(false);
 
   useEffect(() => {
+    // App boot: start capturing JS console logs/errors for "report a problem"
+    // (spec 13.x — automatic diagnostics; staff never type logs by hand).
+    installDiagnostics();
     initOfflineQueue();
     const update = () => {
       setPending(getPendingCount());

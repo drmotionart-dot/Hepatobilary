@@ -388,12 +388,31 @@ export interface Attendance {
   updatedAt: Date;
 }
 
+// Client-captured diagnostics attached to a problem report so a developer can
+// reproduce/fix the issue from the report alone (paste into an AI agent).
+export interface ProblemReportContext {
+  ua?: string | null;
+  language?: string | null;
+  platform?: string | null;
+  timezone?: string | null;
+  screen?: string | null;
+  viewport?: string | null;
+  deviceType?: string | null;
+  localTime?: string | null;
+  pendingOffline?: number;
+  recentConsole: { level: "log" | "warn" | "error"; message: string; at: string }[];
+}
+
 // Staff "report a problem" (top-bar button, all authenticated roles). No
 // shift-key gate; visible to residents/admins under the Admin hub.
 export interface ProblemReport {
   _id?: ObjectId;
   description: string;
   url?: string | null;
+  referer?: string | null;
+  ua?: string | null;
+  ip?: string | null;
+  context?: ProblemReportContext;
   role: Role;
   performedBy: ObjectId;
   status: "open" | "resolved";
@@ -402,4 +421,6 @@ export interface ProblemReport {
   resolvedAt?: Date | null;
   createdAt: Date;
   performedByName?: string; // joined by the backend GET for the admin view
+  performedByEmail?: string | null;
+  performedByLoginId?: string | null;
 }

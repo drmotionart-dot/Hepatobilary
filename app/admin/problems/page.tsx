@@ -6,6 +6,7 @@ import Card from "@/components/ui/Card";
 import EmptyState from "@/components/ui/EmptyState";
 import Badge from "@/components/ui/Badge";
 import ResolveReportButton from "@/components/admin/ResolveReportButton";
+import ProblemReportDetails from "@/components/admin/ProblemReportDetails";
 import { requireRole, apiFetchServer } from "@/lib/api";
 import { formatDateTime } from "@/lib/format";
 import type { ProblemReport } from "@/lib/models/types";
@@ -93,7 +94,10 @@ export default async function AdminProblemsPage({ searchParams }: { searchParams
                         </Badge>
                       </td>
                       <td className="py-2 whitespace-nowrap">
-                        <ResolveReportButton id={r._id!.toString()} resolved={r.status === "resolved"} />
+                        <div className="flex gap-2">
+                          <ProblemReportDetails report={r} />
+                          <ResolveReportButton id={r._id!.toString()} resolved={r.status === "resolved"} />
+                        </div>
                       </td>
                     </tr>
                   ))}
