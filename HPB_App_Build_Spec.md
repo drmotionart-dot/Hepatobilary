@@ -691,7 +691,8 @@ The app must be maintainable beyond launch. This section pins the engineering-ma
 ### 16.4 Security & operational baseline
 - Secrets live only in `.env.local` (git-ignored) and in the hosting platform's env vars — never in code or CI logs.
 - Audit logging (`lib/audit.ts`) records who changed what (shift assignments, day types, roster imports, account creation) with `performedBy`/`performedAt`.
-- Structured, request-scoped logging with a correlation ID is planned (Phase 5) so a failing request is traceable end-to-end across API and database.
+- Structured, request-scoped logging with a correlation ID is in place: every API request carries an `x-correlation-id` (frontend → middleware → `handleRoute`), is returned on the response, and is logged as JSON lines so a failing request is traceable end-to-end.
+- Ops surfaces: an unauthenticated `GET /api/health` (liveness + DB reachability), a dependency-free `npm run load-test` (p50/p95/p99 + error rate, exits non-zero on budget breach), and `docs/RUNBOOK.md` for rollback/triage/seed-restore.
 - Rollback = `git revert` on the offending commit(s); the DB schema is append-safe (no destructive migrations), and a wiped test/QA database is only ever seeded with the canonical seed (`scripts/seed.ts`).
 
 ### 16.5 Test-data hygiene
