@@ -665,3 +665,35 @@ The tour's step content is **bundled in the app** — no runtime fetch — so it
 - Any additional case types beyond Hernia/Biliary/Hepatic planned for the near term (Appendix, Trauma, etc.) — not required for launch, but good to know if `CaseTypeTemplate` needs anything beyond what's designed.
 - Confirm whether self-booking should be enabled for interns at launch, or remain a resident/admin-only fill workflow for now (schema supports it either way, spec 6.1).
 - Confirm the exact capability list for interns (spec 11.1) — which capabilities beyond `bypass-shift-key` should be granted by default, if any.
+
+---
+
+## 16. Engineering Maturity (CI/CD, Architecture & Testing)
+
+The app must be maintainable beyond launch. This section pins the engineering-maturity baseline that applies to **both** the frontend and the backend repository.
+
+### 16.1 Layered backend architecture
+- **Routes stay thin:** an API route parses + authorizes, calls a service, and responds. Business rules live in `lib/services/*`, persistence in `lib/repositories/*`, and shared error plumbing in `lib/http.ts` (`HttpError`, `jsonError`, `handleRoute`).
+- **Single source of truth per rule:** day-type resolution (`lib/day-type.ts`) and slot applicability feed every resolver — bulk-generate, self-book, roster board, export, import and the dashboard all agree.
+- **Auth stays in routes:** guards (`requireRole`, `requireCapability`) return explicit 401/403 before any service call; services never trust the caller.
+- **Pure helpers are importable without a DB:** sheet parsing, phone/name normalization and date math live in leaf modules so they can be unit-tested in isolation.
+
+### 16.2 Automated tests
+- **Unit tests** cover the rulebook: shift boundary (`dayRange`, `activeShiftDate`), day-type defaults (Thursday→clinic, Sun/Wed→normal+surgery), and roster-import parsing (phone/name normalization, date parsing, header detection, column mapping, slot matching).
+- **Integration tests** run the service layer against a real MongoDB via `mongodb-memory-server` — assignment, bulk-generate idempotency, absence mirroring into attendance, self-booking rules (8-week window, one slot per day, 409 conflicts), board/today/export, the Wardyati import + review queue, and account creation. They never touch the real database.
+- **CI runs them:** `npm run test --if-present` executes the suite on every push/PR; tests must stay green alongside typecheck, lint and build.
+
+### 16.3 CI/CD
+- **GitHub Actions CI** on every push/PR to `main`: Node 20, `npm ci`, `npx tsc --noEmit`, `npm run lint`, `npm run build`, `npm run test`. CI uses isolated dummy secrets; real credentials stay in each environment's `.env.local`.
+- **Dependabot** checks npm dependencies weekly (max 10 open PRs, labeled `dependencies`) so the pile never goes stale.
+- **Branch protection** on `main`: CI must pass before merge.
+
+### 16.4 Security & operational baseline
+- Secrets live only in `.env.local` (git-ignored) and in the hosting platform's env vars — never in code or CI logs.
+- Audit logging (`lib/audit.ts`) records who changed what (shift assignments, day types, roster imports, account creation) with `performedBy`/`performedAt`.
+- Structured, request-scoped logging with a correlation ID is planned (Phase 5) so a failing request is traceable end-to-end across API and database.
+- Rollback = `git revert` on the offending commit(s); the DB schema is append-safe (no destructive migrations), and a wiped test/QA database is only ever seeded with the canonical seed (`scripts/seed.ts`).
+
+### 16.5 Test-data hygiene
+- Any QA/verification data written to a real environment is wiped afterward; the canonical state is exactly the seed data plus the real admin account.
+- Integration tests never touch real environments — they run entirely inside `mongodb-memory-server`.
