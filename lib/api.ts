@@ -57,10 +57,14 @@ export function apiUrl(path: string) {
   return `${base}${path}`;
 }
 
+// One correlation id per server process (spec 16.5) — server components send it
+// so their backend calls are traceable like browser-originated ones.
+const serverCorrelationId = globalThis.crypto?.randomUUID?.() ?? `hpb-${Date.now()}`;
+
 export async function apiFetchServer<T>(path: string): Promise<T | null> {
   const token = await getTokenFromCookies();
   const res = await fetch(apiUrl(path), {
-    headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+    headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}), "x-correlation-id": serverCorrelationId },
     cache: "no-store",
   });
   // 401 = not authenticated → pages redirect to /login.

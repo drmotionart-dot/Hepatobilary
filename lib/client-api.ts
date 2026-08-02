@@ -31,6 +31,30 @@ const MUTATION_METHODS = new Set(["POST", "PATCH", "PUT", "DELETE"]);
 // Account/auth actions must surface failures immediately — never queue.
 const NO_QUEUE_PATHS = new Set(["/api/auth/login", "/api/register", "/api/change-password"]);
 
+// Request correlation ID (spec 16.5): one id per browser session, sent on every
+// request as `x-correlation-id`. The backend honours an incoming id and echoes
+// it back on every response, so a user-reported failure maps 1:1 to the server
+// log lines. A fresh UUID is minted here when the browser has no crypto.
+let correlationId: string | null = null;
+export function getCorrelationId(): string {
+  if (!correlationId) {
+    correlationId =
+      typeof window !== "undefined" && globalThis.crypto?.randomUUID?.()
+        ? globalThis.crypto.randomUUID()
+        : `hpb-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+  }
+  return correlationId;
+}
+
+// Echo the server's correlation id (falling back to ours) and, for server
+// faults, log it so DevTools shows the exact id a support ticket should quote.
+function traceResponse(path: string, method: string, res: Response): void {
+  const server = res.headers.get("x-correlation-id") || getCorrelationId();
+  if (res.status >= 500) {
+    console.error(`[api] ${method} ${path} -> ${res.status} (correlationId=${server})`);
+  }
+}
+
 export function getToken(): string | null {
   if (typeof window === "undefined") return null;
   const match = document.cookie.match(/(?:^|; )token=([^;]*)/);
@@ -134,6 +158,7 @@ async function performRequest(path: string, options: RequestInit, headers: Heade
   const token = getToken();
   if (token) headers.set("Authorization", `Bearer ${token}`);
   if (shiftKey) headers.set("x-shift-key", shiftKey);
+  headers.set("x-correlation-id", getCorrelationId());
   return fetch(`${API_BASE}${path}`, { ...options, headers });
 }
 
@@ -163,8 +188,7 @@ export async function apiFetch(path: string, options: RequestInit = {}): Promise
   try {
     res = await performRequest(path, options, headers, shiftKey);
   } catch {
-    const queuable = MUTATION_METHODS.has(method) && !NO_QUEUE_PATHS.has(path);
-    if (queuable && typeof window !== "undefined") {
+    const queuable = MUTATION_METHODS.has(method) && !NO_QUEUE_PATHS.has(path);    if (queuable && typeof window !== "undefined") {
       try {
         const storedHeaders: Record<string, string> = {};
         headers.forEach((value, key) => {
@@ -192,6 +216,8 @@ export async function apiFetch(path: string, options: RequestInit = {}): Promise
     }
     throw new Error(`Network request to ${path} failed`);
   }
+
+  traceResponse(path, method, res);
 
   if (res.status === 401) {
     clearToken();
@@ -245,6 +271,7 @@ export function flushOfflineQueue(): Promise<number> {
       headers.set("x-sync-replay", "true");
       if (item.performedAt) headers.set("x-performed-at", new Date(item.performedAt).toISOString());
       if (item.shiftKey) headers.set("x-shift-key", item.shiftKey);
+      headers.set("x-correlation-id", getCorrelationId());
       try {
         const res = await fetch(`${API_BASE}${item.path}`, {
           method: item.method,
