@@ -12,6 +12,15 @@ import { apiFetch } from "@/lib/client-api";
 import { localDateKey } from "@/lib/constants";
 import type { Attendance } from "@/lib/models/types";
 
+// Attendance defaults to "present" — an intern on the roster is assumed on
+// shift until explicitly marked absent. The panel shows a default present row
+// for the selected date unless a record already exists for it.
+
+function formatDisplayDate(value: string | Date): string {
+  if (value instanceof Date) return value.toLocaleDateString("en-GB");
+  return String(value).slice(0, 10).split("-").reverse().join("/");
+}
+
 export default function AttendancePanel({ userId, records }: { userId: string; records: Attendance[] }) {
   const router = useRouter();
   const [date, setDate] = useState(localDateKey(new Date()));
@@ -81,21 +90,26 @@ export default function AttendancePanel({ userId, records }: { userId: string; r
       </form>
       {error && <p className="mt-2 text-xs text-danger">{error}</p>}
 
-      {records.length === 0 ? (
-        <p className="mt-3 text-sm text-muted">No attendance marks yet.</p>
-      ) : (
-        <ul className="mt-3 flex flex-col divide-y divide-border">
-          {records.map((r) => (
-            <li key={r._id?.toString() || `${r.date}-${r.status}`} className="py-2 flex items-center justify-between gap-2">
-              <div>
-                <p className="text-sm font-medium">{r.date instanceof Date ? r.date.toLocaleDateString("en-GB") : String(r.date).slice(0, 10)}</p>
-                {r.note && <p className="text-xs text-muted">{r.note}</p>}
-              </div>
-              <Badge tone={r.status === "present" ? "success" : "danger"}>{r.status}</Badge>
-            </li>
-          ))}
-        </ul>
-      )}
+      <ul className="mt-3 flex flex-col divide-y divide-border">
+        {!records.some((r) => localDateKey(new Date(String(r.date).length === 10 ? `${String(r.date)}T00:00:00` : String(r.date))) === date) && (
+          <li className="py-2 flex items-center justify-between gap-2">
+            <div>
+              <p className="text-sm font-medium">{formatDisplayDate(date)}</p>
+              <p className="text-xs text-muted">Present by default — only absences are marked.</p>
+            </div>
+            <Badge tone="success">present</Badge>
+          </li>
+        )}
+        {records.map((r) => (
+          <li key={r._id?.toString() || `${r.date}-${r.status}`} className="py-2 flex items-center justify-between gap-2">
+            <div>
+              <p className="text-sm font-medium">{formatDisplayDate(r.date)}</p>
+              {r.note && <p className="text-xs text-muted">{r.note}</p>}
+            </div>
+            <Badge tone={r.status === "present" ? "success" : "danger"}>{r.status}</Badge>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
