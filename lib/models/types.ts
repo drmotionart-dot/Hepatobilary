@@ -387,3 +387,19 @@ export interface Attendance {
   createdAt: Date;
   updatedAt: Date;
 }
+
+// Staff "report a problem" (top-bar button, all authenticated roles). No
+// shift-key gate; visible to residents/admins under the Admin hub.
+export interface ProblemReport {
+  _id?: ObjectId;
+  description: string;
+  url?: string | null;
+  role: Role;
+  performedBy: ObjectId;
+  status: "open" | "resolved";
+  correlationId?: string | null;
+  resolvedBy?: ObjectId | null;
+  resolvedAt?: Date | null;
+  createdAt: Date;
+  performedByName?: string; // joined by the backend GET for the admin view
+}

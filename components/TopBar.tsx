@@ -6,6 +6,7 @@ import Link from "next/link";
 import { apiFetch, clearToken } from "@/lib/client-api";
 import { APP_NAME } from "@/lib/constants";
 import ShiftKeyBadge from "@/components/shift-key/ShiftKeyBadge";
+import ReportProblem from "@/components/ReportProblem";
 
 type UserInfo = { name?: string; email?: string; role: string };
 type PatientHit = { _id: string; medicalNumber: string; fullName: string; age: number; sex: string };
@@ -152,6 +153,8 @@ export default function TopBar({ user }: { user: UserInfo | null }) {
         <div className="hidden sm:block">
           <ShiftKeyBadge />
         </div>
+
+        {user && <ReportProblem user={user} />}
 
         <button
           type="button"

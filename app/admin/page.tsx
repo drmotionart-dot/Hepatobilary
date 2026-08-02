@@ -17,6 +17,7 @@ const ALL_LINKS = [
   { href: "/admin/forms", title: "Form templates", desc: "Custom departmental form definitions" },
   { href: "/lab-import/mappings", title: "Lab test mappings", desc: "PDF test names → internal lab panel keys" },
   { href: "/admin/audit", title: "Audit log", desc: "Every write across the system, who and when" },
+  { href: "/admin/problems", title: "Problem reports", desc: "Issues reported by staff mid-shift, with the page they were on" },
 ];
 
 export default async function AdminPage() {
